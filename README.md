@@ -1,0 +1,4 @@
+javaScratchpad
+==============
+
+sketches of java
