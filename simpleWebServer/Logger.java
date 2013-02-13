@@ -8,15 +8,13 @@ import java.util.*;
 
 
 class Logger {
-    /* print to stdout */
-    protected static void p(String s) {
-        System.out.println(s);
+    protected static void p(String message) {
+        System.out.println(message);
     }
 
-    /* print to the log file */
-    protected static void log(String s) {
+    protected static void log(String message) {
         synchronized (log) {
-            log.println(s);
+            log.println(message);
             log.flush();
         }
     }

@@ -7,7 +7,7 @@ import java.net.*;
 import java.util.*;
 
 
-class FileExtensionToContentTypeMapper() {
+class FileExtensionToContentTypeMapper {
 
     static java.util.Hashtable map = new java.util.Hashtable();
 
@@ -45,3 +45,4 @@ class FileExtensionToContentTypeMapper() {
         setSuffix(".java", "text/plain");
     }
 }
+
