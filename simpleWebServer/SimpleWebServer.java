@@ -5,7 +5,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import static HttpConstants;
+import static HttpConstants.*;
 
 
 class Runner {
@@ -14,11 +14,14 @@ class Runner {
         if (args.length > 0) {
             port = Integer.parseInt(args[0]);
         }
-        config = new Config();
-        config.load();
-        config.printProps();
 
-        webServer = new WebServer(Config config);
+        ConfigDefaults defaults = new ConfigDefaults();
+        Logger logger = new SimpleLogger();
+        Config config = new Config(defaults, logger);
+        config.load();
+        config.list();
+
+        WebServer webServer = new WebServer(config);
         webServer.start();
     }
 }
@@ -48,12 +51,12 @@ class WebServer {
 
         /* start worker threads */
         for (int i = 0; i < workers; ++i) {
-            Worker w = new Worker();
+            Worker w = new Worker(config);
             (new Thread(w, "worker #"+i)).start();
             threads.addElement(w);
         }
 
-        ServerSocket serverSocket = new ServerSocket(port);
+        ServerSocket serverSocket = new ServerSocket(settings.port);
         while (true) {
 
             Socket s = serverSocket.accept();
@@ -61,7 +64,7 @@ class WebServer {
             Worker w = null;
             synchronized (threads) {
                 if (threads.isEmpty()) {
-                    Worker ws = new Worker();
+                    Worker ws = new Worker(config);
                     ws.setSocket(s);
                     (new Thread(ws, "additional worker")).start();
                 } else {
@@ -89,7 +92,7 @@ class Worker extends WebServer implements Runnable {
     /* Socket to client we're handling */
     private Socket s;
 
-    Worker() {
+    Worker(Config config) {
         buf = new byte[BUF_SIZE];
         s = null;
     }
@@ -168,12 +171,12 @@ outerloop:
                 }
             }
 
-            doingGet = extractMethod(buf);
-            fname = extractFilename(buf);
-            targ = openFile(filename);
-
             PrintStream ps = new PrintStream(s.getOutputStream());
-            proxy = new StaticContentReverse();
+            boolean doingGet = extractMethod(buf, ps);
+            String fname = extractFilename(buf);
+            File targ = openFile(fname);
+
+            StaticContentReverse proxy = new StaticContentReverse();
             proxy.deliverContent(doingGet, targ, ps);
 
         } finally {
@@ -189,7 +192,7 @@ outerloop:
         }
     }
 
-    protected boolean extractMethod(buf) {
+    protected boolean extractMethod(byte[] buf, PrintStream ps) {
         /* are we doing a GET or just a HEAD */
         boolean doingGet;
         /* beginning of file name */
@@ -221,7 +224,7 @@ outerloop:
         }
     }
 
-    protected String extractFilename(buf) {
+    protected String extractFilename(byte[] buf) {
         /* find the file name, from:
          * GET /foo/bar.html HTTP/1.0
          * extract "/foo/bar.html"
@@ -252,9 +255,9 @@ outerloop:
 }
 
 
-class StaticContentReverse() {
+class StaticContentReverse {
 
-    void deliverContent(doingGet, targ, ps) {
+    void deliverContent(boolean doingGet, File targ, PrintStream ps) {
         boolean OK = printHeaders(targ, ps);
         if (doingGet) {
             if (OK) {

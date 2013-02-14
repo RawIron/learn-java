@@ -9,12 +9,16 @@ import java.util.*;
 
 class ConfigDefaults {
 
+    public ConfigDefaults() {
+    }
+
     public ConfigDefaults(Config c) {
         assignTo(c);
     }
 
     public void assignTo(Config c) {
         c.root = new File(System.getProperty("user.dir"));
+        c.port = 8080;
         c.timeout = 5000;
         c.workers = 5;
         c.logger = new SimpleLogger();
@@ -23,6 +27,9 @@ class ConfigDefaults {
     public void checkAndComplete(Config c) {
         if (c.root == null) {
             c.root = new File(System.getProperty("user.dir"));
+        }
+        if (c.port == 0) {
+            c.port = 8080;
         }
         if (c.timeout <= 1000) {
             c.timeout = 5000;
@@ -39,6 +46,7 @@ class ConfigDefaults {
 
 class Config {
     File root = null;
+    int port = 0;
     int timeout = 0;
     int workers = 0;
     Logger logger = null;
