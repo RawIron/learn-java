@@ -1,6 +1,8 @@
 /*
  *
  */
+
+package simpleWebServer;
  
 import java.io.*;
 import java.net.*;

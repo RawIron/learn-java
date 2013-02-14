@@ -1,11 +1,15 @@
 /*
  * simple, multi-threaded HTTP server
  */
+
+package simpleWebServer;
  
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import static HttpConstants.*;
+
+import static simpleWebServer.HttpConstants.*;
+import simpleWebServer.FileExtensionToContentTypeMapper;
 
 
 class Runner {
@@ -25,6 +29,7 @@ class Runner {
         webServer.start();
     }
 }
+
 
 class WebServer {
 

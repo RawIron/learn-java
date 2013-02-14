@@ -1,3 +1,4 @@
+package simpleWebServer;
 
 class HttpConstants {
     /** 2XX: generally "OK" */

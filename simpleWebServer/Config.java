@@ -1,6 +1,8 @@
 /*
  * server configuration is in properties file
  */
+
+package simpleWebServer;
  
 import java.io.*;
 import java.net.*;
