@@ -17,7 +17,7 @@ class ConfigDefaults {
         c.root = new File(System.getProperty("user.dir"));
         c.timeout = 5000;
         c.workers = 5;
-        c.log = System.out;
+        c.logger = new SimpleLogger();
     }
 
     public void checkAndComplete(Config c) {
@@ -30,8 +30,8 @@ class ConfigDefaults {
         if (c.workers < 25) {
             c.workers = 5;
         }
-        if (c.log == null) {
-            c.log = System.out;
+        if (c.logger == null) {
+            c.logger = new SimpleLogger();
         }
     }
 }
@@ -41,7 +41,6 @@ class Config {
     File root = null;
     int timeout = 0;
     int workers = 0;
-    OutputStream log = null;
     Logger logger = null;
     ConfigDefaults defaults = null;
 
@@ -89,18 +88,14 @@ class Config {
         property = properties.getProperty("log");
         if (property != null) {
             String logName = property;
-            try {
-                log = new PrintStream(new BufferedOutputStream(
-                                  new FileOutputStream(logName)));
-            } catch (FileNotFoundException e) {
-            }
+            logger = new StreamLogger(logName);
         }
     }
 
     public void list() {
-        logger.p("root=" + root);
-        logger.p("timeout=" + timeout);
-        logger.p("workers=" + workers);
+        logger.log("root=" + root);
+        logger.log("timeout=" + timeout);
+        logger.log("workers=" + workers);
     }
 }
 

@@ -7,18 +7,35 @@ import java.net.*;
 import java.util.*;
 
 
-class Logger {
-    protected static void p(String message) {
-        System.out.println(message);
+abstract class Logger {
+    public abstract void log(String message);
+}
+
+
+class StreamLogger extends Logger {
+
+    PrintStream log = null;
+
+    public StreamLogger(String logName) {
+        try {
+            this.log = new PrintStream(new BufferedOutputStream(
+                              new FileOutputStream(logName)));
+        } catch (FileNotFoundException e) {
+        }
     }
 
-    protected static void log(String message) {
+    public void log(String message) {
         synchronized (log) {
             log.println(message);
             log.flush();
         }
     }
+}
 
-    static PrintStream log = null;
+
+class SimpleLogger extends Logger {
+    public void log(String message) {
+        System.out.println(message);
+    }
 }
 
