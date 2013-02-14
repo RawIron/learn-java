@@ -51,7 +51,7 @@ class WebServer {
 
         /* start worker threads */
         for (int i = 0; i < workers; ++i) {
-            Worker w = new Worker(config);
+            Worker w = new Worker(settings);
             (new Thread(w, "worker #"+i)).start();
             threads.addElement(w);
         }
@@ -64,7 +64,7 @@ class WebServer {
             Worker w = null;
             synchronized (threads) {
                 if (threads.isEmpty()) {
-                    Worker ws = new Worker(config);
+                    Worker ws = new Worker(settings);
                     ws.setSocket(s);
                     (new Thread(ws, "additional worker")).start();
                 } else {
@@ -83,14 +83,17 @@ class WebServer {
 
 
 class Worker extends WebServer implements Runnable {
-    final static int BUF_SIZE = 2048;
 
+    final static int BUF_SIZE = 2048;
     static final byte[] EOL = {(byte)'\r', (byte)'\n' };
 
     /* buffer to use for requests */
     byte[] buf;
+    int index;
+    int nread;
     /* Socket to client we're handling */
     private Socket s;
+
 
     Worker(Config config) {
         buf = new byte[BUF_SIZE];
@@ -144,6 +147,7 @@ class Worker extends WebServer implements Runnable {
          */
         s.setSoTimeout(WebServer.timeout);
         s.setTcpNoDelay(true);
+        String hostAddress = s.getInetAddress().getHostAddress();
 
         resetBuffer();
 
@@ -172,12 +176,13 @@ outerloop:
             }
 
             PrintStream ps = new PrintStream(s.getOutputStream());
+            index = 0;
             boolean doingGet = extractMethod(buf, ps);
             String fname = extractFilename(buf);
             File targ = openFile(fname);
 
-            StaticContentReverse proxy = new StaticContentReverse();
-            proxy.deliverContent(doingGet, targ, ps);
+            StaticContentReverse proxy = new StaticContentReverse(settings.logger);
+            proxy.deliverContent(doingGet, targ, ps, hostAddress);
 
         } finally {
             s.close();
@@ -194,9 +199,8 @@ outerloop:
 
     protected boolean extractMethod(byte[] buf, PrintStream ps) {
         /* are we doing a GET or just a HEAD */
-        boolean doingGet;
+        boolean doingGet = false;
         /* beginning of file name */
-        int index;
         if (buf[0] == (byte)'G' &&
             buf[1] == (byte)'E' &&
             buf[2] == (byte)'T' &&
@@ -220,8 +224,8 @@ outerloop:
             ps.write(EOL);
             ps.flush();
             s.close();
-            return;
         }
+        return doingGet;
     }
 
     protected String extractFilename(byte[] buf) {
@@ -229,21 +233,25 @@ outerloop:
          * GET /foo/bar.html HTTP/1.0
          * extract "/foo/bar.html"
          */
-        int i = 0;
-        for (i = index; i < nread; i++) {
+        int fnameBegin = index;
+        int fnameLen = 0;
+        for (int i = index; i < nread; i++) {
             if (buf[i] == (byte)' ') {
+                fnameLen = i - fnameBegin;
                 break;
             }
         }
-        String fname = (new String(buf, 0, index,
-                  i-index)).replace('/', File.separatorChar);
+
+        String fname = (new String(buf, 0, fnameBegin,
+                  fnameLen)).replace('/', File.separatorChar);
         if (fname.startsWith(File.separator)) {
             fname = fname.substring(1);
         }
+
         return fname;
     }
 
-    protected File openFile(String filename) {
+    protected File openFile(String fname) {
         File targ = new File(WebServer.root, fname);
         if (targ.isDirectory()) {
             File ind = new File(targ, "index.html");
@@ -255,10 +263,17 @@ outerloop:
 }
 
 
+
 class StaticContentReverse {
 
-    void deliverContent(boolean doingGet, File targ, PrintStream ps) {
-        boolean OK = printHeaders(targ, ps);
+    Logger logger = null;
+
+    public StaticContentReverse(Logger logger) {
+        this.logger = logger;
+    }
+
+    void deliverContent(boolean doingGet, File targ, PrintStream ps, String hostAddress) {
+        boolean OK = printHeaders(targ, ps, hostAddress);
         if (doingGet) {
             if (OK) {
                 sendFile(targ, ps);
@@ -268,9 +283,12 @@ class StaticContentReverse {
         }
     }
 
-    boolean printHeaders(File targ, PrintStream ps) throws IOException {
+    boolean printHeaders(File targ, PrintStream ps, String hostAddress)
+        throws IOException
+    {
         boolean ret = false;
         int rCode = 0;
+
         if (!targ.exists()) {
             rCode = HTTP_NOT_FOUND;
             ps.print("HTTP/1.0 " + HTTP_NOT_FOUND + " not found");
@@ -282,8 +300,9 @@ class StaticContentReverse {
             ps.write(EOL);
             ret = true;
         }
-        log("From " +s.getInetAddress().getHostAddress()+": GET " +
-            targ.getAbsolutePath()+"-->"+rCode);
+        logger.log("From " + hostAddress + ": GET " +
+            targ.getAbsolutePath() + "-->" + rCode);
+
         ps.print("Server: Simple java");
         ps.write(EOL);
         ps.print("Date: " + (new Date()));
@@ -299,7 +318,7 @@ class StaticContentReverse {
                 int ind = name.lastIndexOf('.');
                 String ct = null;
                 if (ind > 0) {
-                    ct = (String) map.get(name.substring(ind));
+                    ct = (String) extensionToContent.get(name.substring(ind));
                 }
                 if (ct == null) {
                     ct = "unknown/unknown";
@@ -331,6 +350,7 @@ class StaticContentReverse {
             is = new FileInputStream(targ.getAbsolutePath());
         }
 
+        byte[] buf = new byte[BUF_SIZE];
         try {
             int n;
             while ((n = is.read(buf)) > 0) {
