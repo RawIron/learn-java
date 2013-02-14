@@ -9,40 +9,41 @@ import java.util.*;
 
 class FileExtensionToContentTypeMapper {
 
-    static java.util.Hashtable map = new java.util.Hashtable();
+    public java.util.Hashtable<String,String> extentionsToContent
+                = new java.util.Hashtable<String,String>();
 
-    static {
-        fillMap();
+    public FileExtensionToContentTypeMapper() {
+        fillExtensionsWithContent();
     }
 
-    static void setSuffix(String k, String v) {
-        map.put(k, v);
+    protected void fillExtensionsWithContent() {
+        addExtension("", "content/unknown");
+        addExtension(".uu", "application/octet-stream");
+        addExtension(".exe", "application/octet-stream");
+        addExtension(".ps", "application/postscript");
+        addExtension(".zip", "application/zip");
+        addExtension(".sh", "application/x-shar");
+        addExtension(".tar", "application/x-tar");
+        addExtension(".snd", "audio/basic");
+        addExtension(".au", "audio/basic");
+        addExtension(".wav", "audio/x-wav");
+        addExtension(".gif", "image/gif");
+        addExtension(".jpg", "image/jpeg");
+        addExtension(".jpeg", "image/jpeg");
+        addExtension(".htm", "text/html");
+        addExtension(".html", "text/html");
+        addExtension(".text", "text/plain");
+        addExtension(".c", "text/plain");
+        addExtension(".cc", "text/plain");
+        addExtension(".c++", "text/plain");
+        addExtension(".h", "text/plain");
+        addExtension(".pl", "text/plain");
+        addExtension(".txt", "text/plain");
+        addExtension(".java", "text/plain");
     }
 
-    static void fillMap() {
-        setSuffix("", "content/unknown");
-        setSuffix(".uu", "application/octet-stream");
-        setSuffix(".exe", "application/octet-stream");
-        setSuffix(".ps", "application/postscript");
-        setSuffix(".zip", "application/zip");
-        setSuffix(".sh", "application/x-shar");
-        setSuffix(".tar", "application/x-tar");
-        setSuffix(".snd", "audio/basic");
-        setSuffix(".au", "audio/basic");
-        setSuffix(".wav", "audio/x-wav");
-        setSuffix(".gif", "image/gif");
-        setSuffix(".jpg", "image/jpeg");
-        setSuffix(".jpeg", "image/jpeg");
-        setSuffix(".htm", "text/html");
-        setSuffix(".html", "text/html");
-        setSuffix(".text", "text/plain");
-        setSuffix(".c", "text/plain");
-        setSuffix(".cc", "text/plain");
-        setSuffix(".c++", "text/plain");
-        setSuffix(".h", "text/plain");
-        setSuffix(".pl", "text/plain");
-        setSuffix(".txt", "text/plain");
-        setSuffix(".java", "text/plain");
+    protected void addExtension(String extension, String content) {
+        extentionsToContent.put(extension, content);
     }
 }
 
