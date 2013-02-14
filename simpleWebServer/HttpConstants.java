@@ -1,5 +1,5 @@
 
-interface HttpConstants {
+class HttpConstants {
     /** 2XX: generally "OK" */
     public static final int HTTP_OK = 200;
     public static final int HTTP_CREATED = 201;
@@ -43,6 +43,5 @@ interface HttpConstants {
     public static final int HTTP_GATEWAY_TIMEOUT = 504;
     public static final int HTTP_VERSION = 505;
 }
-
 
 

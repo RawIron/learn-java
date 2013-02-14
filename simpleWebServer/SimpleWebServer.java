@@ -1,10 +1,11 @@
 /*
- * very simple, multi-threaded HTTP server
+ * simple, multi-threaded HTTP server
  */
  
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import static HttpConstants;
 
 
 class Runner {
@@ -17,16 +18,14 @@ class Runner {
         config.load();
         config.printProps();
 
-        h = new HttpConstants();
-        webServer = new WebServer(Config config, HttpConstants h);
+        webServer = new WebServer(Config config);
         webServer.start();
     }
 }
 
 class WebServer {
 
-    HttpConstants http = null;
-    Config c = null;
+    Config settings = null;
 
     /* Where worker threads stand idle */
     static Vector threads = new Vector();
@@ -41,9 +40,8 @@ class WebServer {
     static int workers = 5;
 
 
-    public WebServer(Config c, HttpConstants http) {
-        this.c = c;
-        this.http = http;
+    public WebServer(Config config) {
+        this.settings = config;
     }
 
     public void start() throws Exception {
@@ -55,10 +53,10 @@ class WebServer {
             threads.addElement(w);
         }
 
-        ServerSocket ss = new ServerSocket(port);
+        ServerSocket serverSocket = new ServerSocket(port);
         while (true) {
 
-            Socket s = ss.accept();
+            Socket s = serverSocket.accept();
 
             Worker w = null;
             synchronized (threads) {
@@ -76,6 +74,7 @@ class WebServer {
     }
 
     public void stop() {
+        return;
     }
 }
 
