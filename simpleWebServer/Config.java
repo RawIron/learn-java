@@ -5,7 +5,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import Logger.*;
 
 
 class ConfigDefaults {
@@ -90,15 +89,18 @@ class Config {
         property = properties.getProperty("log");
         if (property != null) {
             String logName = property;
-            log = new PrintStream(new BufferedOutputStream(
+            try {
+                log = new PrintStream(new BufferedOutputStream(
                                   new FileOutputStream(logName)));
+            } catch (FileNotFoundException e) {
+            }
         }
     }
 
     public void list() {
-        p("root=" + root);
-        p("timeout=" + timeout);
-        p("workers=" + workers);
+        logger.p("root=" + root);
+        logger.p("timeout=" + timeout);
+        logger.p("workers=" + workers);
     }
 }
 
