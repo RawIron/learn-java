@@ -8,20 +8,25 @@ import java.util.*;
 
 
 class Runner {
-    public static void main(String[] a) throws Exception {
+    public static void main(String[] args) throws Exception {
         int port = 8080;
-        if (a.length > 0) {
-            port = Integer.parseInt(a[0]);
+        if (args.length > 0) {
+            port = Integer.parseInt(args[0]);
         }
-        loadProps();
-        printProps();
+        config = new Config();
+        config.load();
+        config.printProps();
 
-        webServer = new WebServer();
+        h = new HttpConstants();
+        webServer = new WebServer(Config config, HttpConstants h);
         webServer.start();
     }
 }
 
-class WebServer implements HttpConstants {
+class WebServer {
+
+    HttpConstants http = null;
+    Config c = null;
 
     /* Where worker threads stand idle */
     static Vector threads = new Vector();
@@ -35,6 +40,11 @@ class WebServer implements HttpConstants {
     /* max # worker threads */
     static int workers = 5;
 
+
+    public WebServer(Config c, HttpConstants http) {
+        this.c = c;
+        this.http = http;
+    }
 
     public void start() throws Exception {
 
@@ -70,7 +80,7 @@ class WebServer implements HttpConstants {
 }
 
 
-class Worker extends WebServer implements HttpConstants, Runnable {
+class Worker extends WebServer implements Runnable {
     final static int BUF_SIZE = 2048;
 
     static final byte[] EOL = {(byte)'\r', (byte)'\n' };
@@ -173,14 +183,14 @@ outerloop:
 
     }
 
-    void resetBuffer() {
+    protected void resetBuffer() {
         /* zero out the buffer from last time */
         for (int i = 0; i < BUF_SIZE; i++) {
             buf[i] = 0;
         }
     }
 
-    boolean extractMethod(buf) {
+    protected boolean extractMethod(buf) {
         /* are we doing a GET or just a HEAD */
         boolean doingGet;
         /* beginning of file name */
@@ -212,7 +222,7 @@ outerloop:
         }
     }
 
-    String extractFilename(buf) {
+    protected String extractFilename(buf) {
         /* find the file name, from:
          * GET /foo/bar.html HTTP/1.0
          * extract "/foo/bar.html"
@@ -231,7 +241,7 @@ outerloop:
         return fname;
     }
 
-    File openFile(String filename) {
+    protected File openFile(String filename) {
         File targ = new File(WebServer.root, fname);
         if (targ.isDirectory()) {
             File ind = new File(targ, "index.html");
@@ -345,42 +355,3 @@ class StaticContentReverse() {
     }
 }
 
-
-class FileExtensionToContentTypeMapper() {
-
-    static java.util.Hashtable map = new java.util.Hashtable();
-
-    static {
-        fillMap();
-    }
-
-    static void setSuffix(String k, String v) {
-        map.put(k, v);
-    }
-
-    static void fillMap() {
-        setSuffix("", "content/unknown");
-        setSuffix(".uu", "application/octet-stream");
-        setSuffix(".exe", "application/octet-stream");
-        setSuffix(".ps", "application/postscript");
-        setSuffix(".zip", "application/zip");
-        setSuffix(".sh", "application/x-shar");
-        setSuffix(".tar", "application/x-tar");
-        setSuffix(".snd", "audio/basic");
-        setSuffix(".au", "audio/basic");
-        setSuffix(".wav", "audio/x-wav");
-        setSuffix(".gif", "image/gif");
-        setSuffix(".jpg", "image/jpeg");
-        setSuffix(".jpeg", "image/jpeg");
-        setSuffix(".htm", "text/html");
-        setSuffix(".html", "text/html");
-        setSuffix(".text", "text/plain");
-        setSuffix(".c", "text/plain");
-        setSuffix(".cc", "text/plain");
-        setSuffix(".c++", "text/plain");
-        setSuffix(".h", "text/plain");
-        setSuffix(".pl", "text/plain");
-        setSuffix(".txt", "text/plain");
-        setSuffix(".java", "text/plain");
-    }
-}
