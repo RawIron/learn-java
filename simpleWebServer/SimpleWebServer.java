@@ -10,6 +10,7 @@ import java.util.*;
 
 import static simpleWebServer.HttpConstants.*;
 import simpleWebServer.FileExtensionToContentTypeMapper;
+import simpleWebServer.Config;
 
 
 class Runner {
@@ -100,7 +101,7 @@ class Worker extends WebServer implements Runnable {
     private Socket s;
 
 
-    Worker(Config config) {
+    public Worker(Config config) {
         buf = new byte[BUF_SIZE];
         s = null;
     }
@@ -271,7 +272,11 @@ outerloop:
 
 class StaticContentReverse {
 
+    static final int BUF_SIZE = 2048;
+    static final byte[] EOL = {(byte)'\r', (byte)'\n' };
+
     Logger logger = null;
+    FileExtensionToContentTypeMapper mapper = new FileExtensionToContentTypeMapper();
 
     public StaticContentReverse(Logger logger) {
         this.logger = logger;
@@ -323,7 +328,7 @@ class StaticContentReverse {
                 int ind = name.lastIndexOf('.');
                 String ct = null;
                 if (ind > 0) {
-                    ct = (String) extensionToContent.get(name.substring(ind));
+                    ct = (String) mapper.extensionsToContent.get(name.substring(ind));
                 }
                 if (ct == null) {
                     ct = "unknown/unknown";

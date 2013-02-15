@@ -11,7 +11,7 @@ import java.util.*;
 
 class FileExtensionToContentTypeMapper {
 
-    public java.util.Hashtable<String,String> extentionsToContent
+    public java.util.Hashtable<String,String> extensionsToContent
                 = new java.util.Hashtable<String,String>();
 
     public FileExtensionToContentTypeMapper() {
@@ -45,7 +45,7 @@ class FileExtensionToContentTypeMapper {
     }
 
     protected void addExtension(String extension, String content) {
-        extentionsToContent.put(extension, content);
+        extensionsToContent.put(extension, content);
     }
 }
 
