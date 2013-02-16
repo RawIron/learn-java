@@ -11,6 +11,7 @@ import java.util.*;
 import static simpleWebServer.HttpConstants.*;
 import simpleWebServer.FileExtensionToContentTypeMapper;
 import simpleWebServer.Config;
+import simpleWebServer.Logger;
 
 
 class Runner {
@@ -64,7 +65,6 @@ class WebServer {
 
         ServerSocket serverSocket = new ServerSocket(settings.port);
         while (true) {
-
             Socket s = serverSocket.accept();
 
             Worker w = null;
@@ -88,10 +88,12 @@ class WebServer {
 }
 
 
-class Worker extends WebServer implements Runnable {
+class Worker implements Runnable {
 
     final static int BUF_SIZE = 2048;
     static final byte[] EOL = {(byte)'\r', (byte)'\n' };
+
+    Config settings = null;
 
     /* buffer to use for requests */
     byte[] buf;
@@ -102,6 +104,7 @@ class Worker extends WebServer implements Runnable {
 
 
     public Worker(Config config) {
+        this.settings = config;
         buf = new byte[BUF_SIZE];
         s = null;
     }
@@ -224,12 +227,14 @@ outerloop:
 
         } else {
             /* we don't support this method */
-            ps.print("HTTP/1.0 " + HTTP_BAD_METHOD +
-                       " unsupported method type: ");
-            ps.write(buf, 0, 5);
-            ps.write(EOL);
-            ps.flush();
-            s.close();
+            try {
+                ps.print("HTTP/1.0 " + HTTP_BAD_METHOD +
+                           " unsupported method type: ");
+                ps.write(buf, 0, 5);
+                ps.write(EOL);
+                ps.flush();
+                s.close();
+            } catch (IOException e) {}
         }
         return doingGet;
     }
@@ -265,6 +270,7 @@ outerloop:
                 targ = ind;
             }
         }
+        return targ;
     }
 }
 
@@ -283,6 +289,7 @@ class StaticContentReverse {
     }
 
     void deliverContent(boolean doingGet, File targ, PrintStream ps, String hostAddress) {
+        try {
         boolean OK = printHeaders(targ, ps, hostAddress);
         if (doingGet) {
             if (OK) {
@@ -291,6 +298,7 @@ class StaticContentReverse {
                 send404(targ, ps);
             }
         }
+        } catch (IOException e) {}
     }
 
     boolean printHeaders(File targ, PrintStream ps, String hostAddress)
@@ -328,7 +336,7 @@ class StaticContentReverse {
                 int ind = name.lastIndexOf('.');
                 String ct = null;
                 if (ind > 0) {
-                    ct = (String) mapper.extensionsToContent.get(name.substring(ind));
+                    ct = mapper.extensionsToContent.get(name.substring(ind));
                 }
                 if (ct == null) {
                     ct = "unknown/unknown";
