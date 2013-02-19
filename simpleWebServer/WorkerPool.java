@@ -53,22 +53,14 @@ abstract class WorkerPool {
 
 abstract class Worker implements Runnable {
 
-    final static int BUF_SIZE = 2048;
-    static final byte[] EOL = {(byte)'\r', (byte)'\n' };
-
     Config settings = null;
     WorkerPool workerPool = null;
-
-    byte[] requestBuffer;
-    int index;
-    int nread;
     protected Socket currentClient = null;
 
 
     public Worker(WorkerPool coworkers, Config config) {
         this.workerPool = coworkers;
         this.settings = config;
-        requestBuffer = new byte[BUF_SIZE];
     }
 
 

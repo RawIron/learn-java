@@ -58,6 +58,19 @@ class HttpRequestWorkerPool extends WorkerPool {
 
 class HttpRequestWorker extends Worker {
 
+    final static int BUF_SIZE = 2048;
+    static final byte[] EOL = {(byte)'\r', (byte)'\n' };
+
+    byte[] requestBuffer;
+    int index;
+    int nread;
+
+    public HttpRequestWorker(WorkerPool coworkers, Config config) {
+        super(coworkers, config);
+        requestBuffer = new byte[BUF_SIZE];
+    }
+
+
     protected void handleClient() throws IOException {
 
         /* we will only block in read for this many milliseconds
