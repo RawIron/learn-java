@@ -11,6 +11,7 @@ import java.util.*;
 import simpleWebServer.Config;
 import simpleWebServer.Logger;
 import simpleWebServer.WorkerPool;
+import simpleWebServer.WebServer;
 
 
 class Runner {
@@ -22,6 +23,7 @@ class Runner {
 
         ConfigDefaults defaults = new ConfigDefaults();
         Logger logger = new SimpleLogger();
+
         Config config = new Config(defaults, logger);
         config.load();
         config.list();
