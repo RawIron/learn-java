@@ -49,6 +49,10 @@ class WebServer {
 
 
 class HttpRequestWorkerPool extends WorkerPool {
+    public HttpRequestWorkerPool(Config settings) {
+        super(settings);
+    }
+
     protected Worker createWorker(WorkerPool pool, Config settings) {
         Worker w = new HttpRequestWorker(pool, settings);
         return w;
