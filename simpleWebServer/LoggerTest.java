@@ -1,5 +1,8 @@
 
+package simpleWebServer;
+
 import junit.framework.TestCase;
+import simpleWebServer.Logger;
 
 
 public class LoggerTest extends TestCase {
@@ -16,7 +19,7 @@ public class LoggerTest extends TestCase {
 
     public LoggerTest(String arg0) {
         super();
-        logger = new Logger();
+        logger = new SimpleLogger();
     }
 
     public final void testAdd() {

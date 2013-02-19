@@ -11,8 +11,7 @@ import java.util.*;
 
 class ConfigDefaults {
 
-    public ConfigDefaults() {
-    }
+    public ConfigDefaults() {}
 
     public ConfigDefaults(Config c) {
         assignTo(c);
@@ -22,7 +21,7 @@ class ConfigDefaults {
         c.root = new File(System.getProperty("user.dir"));
         c.port = 8080;
         c.timeout = 5000;
-        c.workers = 5;
+        c.maxWorkersInPool = 5;
         c.logger = new SimpleLogger();
     }
 
@@ -36,8 +35,8 @@ class ConfigDefaults {
         if (c.timeout <= 1000) {
             c.timeout = 5000;
         }
-        if (c.workers < 25) {
-            c.workers = 5;
+        if (c.maxWorkersInPool < 25) {
+            c.maxWorkersInPool = 5;
         }
         if (c.logger == null) {
             c.logger = new SimpleLogger();
@@ -50,7 +49,7 @@ class Config {
     File root = null;
     int port = 0;
     int timeout = 0;
-    int workers = 0;
+    int maxWorkersInPool = 0;
     Logger logger = null;
     ConfigDefaults defaults = null;
 
@@ -93,7 +92,7 @@ class Config {
         }
         property = properties.getProperty("workers");
         if (property != null) {
-            workers = Integer.parseInt(property);
+            maxWorkersInPool = Integer.parseInt(property);
         }
         property = properties.getProperty("log");
         if (property != null) {
@@ -105,7 +104,7 @@ class Config {
     public void list() {
         logger.log("root=" + root);
         logger.log("timeout=" + timeout);
-        logger.log("workers=" + workers);
+        logger.log("workers=" + maxWorkersInPool);
     }
 }
 

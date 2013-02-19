@@ -10,26 +10,9 @@ import java.util.*;
 
 import static simpleWebServer.HttpConstants.*;
 import simpleWebServer.FileExtensionToContentTypeMapper;
-import simpleWebServer.Config;
-import simpleWebServer.Logger;
 
+class WorkerPool {
 
-class Runner {
-    public static void main(String[] args) throws Exception {
-        int port = 8080;
-        if (args.length > 0) {
-            port = Integer.parseInt(args[0]);
-        }
-
-        ConfigDefaults defaults = new ConfigDefaults();
-        Logger logger = new SimpleLogger();
-        Config config = new Config(defaults, logger);
-        config.load();
-        config.list();
-
-        WebServer webServer = new WebServer(config);
-        webServer.start();
-    }
 }
 
 
@@ -37,17 +20,14 @@ class WebServer {
 
     Config settings = null;
 
-    /* Where worker threads stand idle */
-    static Vector threads = new Vector();
+    Vector<Worker> workerPool = new Vector<Worker>();
+    int maxWorkersInPool = 5;
 
     /* the web server's virtual root */
-    static File root;
+    File root;
 
     /* timeout on client connections */
-    static int timeout = 0;
-
-    /* max # worker threads */
-    static int workers = 5;
+    int timeout = 0;
 
 
     public WebServer(Config config) {
@@ -55,35 +35,42 @@ class WebServer {
     }
 
     public void start() throws Exception {
+        initWorkerPool();
+        ServerSocket serverSocket = new ServerSocket(settings.port);
+        while (!isStopped()) {
+            Socket s = serverSocket.accept();
+            Worker w = hireWorkerFromPool();
+        }
+    }
 
-        /* start worker threads */
-        for (int i = 0; i < workers; ++i) {
+    protected void initWorkerPool() {
+        for (int i = 0; i < settings.maxWorkersInPool; ++i) {
             Worker w = new Worker(settings);
             (new Thread(w, "worker #"+i)).start();
-            threads.addElement(w);
+            workerPool.addElement(w);
         }
+    }
 
-        ServerSocket serverSocket = new ServerSocket(settings.port);
-        while (true) {
-            Socket s = serverSocket.accept();
-
-            Worker w = null;
-            synchronized (threads) {
-                if (threads.isEmpty()) {
-                    Worker ws = new Worker(settings);
-                    ws.setSocket(s);
-                    (new Thread(ws, "additional worker")).start();
-                } else {
-                    w = (Worker) threads.elementAt(0);
-                    threads.removeElementAt(0);
-                    w.setSocket(s);
-                }
+    protected Worker hireWorkerFromPool() {
+        Worker w = null;
+        synchronized (workerPool) {
+            if (workerPool.isEmpty()) {
+                w = new Worker(settings);
+                w.youGotWorkWith(s);
+                (new Thread(w, "additional worker")).start();
+            } else {
+                Worker w = workerPool.elementAt(0);
+                workerPool.removeElementAt(0);
+                w.youGotWorkWith(s);
             }
         }
     }
 
     public void stop() {
         return;
+    }
+    protected boolean isStopped() {
+        return true;
     }
 }
 
@@ -109,7 +96,8 @@ class Worker implements Runnable {
         s = null;
     }
 
-    synchronized void setSocket(Socket s) {
+
+    public synchronized void youGotWorkWith(Socket s) {
         this.s = s;
         notify();
     }
@@ -136,17 +124,15 @@ class Worker implements Runnable {
              * than numHandler connections.
              */
             s = null;
-            Vector pool = WebServer.threads;
+            Vector<Worker> pool = WebServer.workerPool;
             synchronized (pool) {
-                if (pool.size() >= WebServer.workers) {
-                    /* too many threads, exit this one */
-                    return;
-                } else {
+                if (pool.size() < settings.maxWorkersInPool) {
                     pool.addElement(this);
                 }
             }
         }
     }
+
 
     void handleClient() throws IOException {
 
