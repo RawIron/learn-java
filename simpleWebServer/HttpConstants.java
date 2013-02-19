@@ -1,3 +1,4 @@
+
 package simpleWebServer;
 
 class HttpConstants {
@@ -44,5 +45,4 @@ class HttpConstants {
     public static final int HTTP_GATEWAY_TIMEOUT = 504;
     public static final int HTTP_VERSION = 505;
 }
-
 
