@@ -15,7 +15,6 @@ import simpleWebServer.FileExtensionToContentTypeMapper;
 class WorkerPool {
     Config settings = null;
     Vector<Worker> workerPool = new Vector<Worker>();
-    int maxWorkersInPool = 5;
 
     public WorkerPool(Config config) {
         this.settings = config;
@@ -63,6 +62,7 @@ class WebServer {
     /* timeout on client connections */
     int timeout = 0;
 
+    stopped = false;
 
     public WebServer(WorkerPool workerPool, Config config) {
         this.workerPool = workerPool;
@@ -73,16 +73,16 @@ class WebServer {
         ServerSocket serverSocket = new ServerSocket(settings.port);
         while (!isStopped()) {
             Socket serveThisSocket = serverSocket.accept();
-            Worker w = workerPool.hireWorker();
-            w.youGotWorkWith(serveThisSocket);
+            Worker worker = workerPool.hireWorker();
+            worker.youGotWorkWith(serveThisSocket);
         }
     }
 
     public void stop() {
-        return;
+        stopped = true;
     }
     protected boolean isStopped() {
-        return true;
+        return stopped;
     }
 }
 
@@ -136,6 +136,7 @@ class Worker implements Runnable {
         workerPool.giveBack(this);
     }
 
+
     public synchronized void run() {
         while(true) {
             waitForNextClient();
@@ -151,7 +152,7 @@ class Worker implements Runnable {
     }
 
 
-    void handleClient() throws IOException {
+    protected void handleClient() throws IOException {
 
         /* we will only block in read for this many milliseconds
          * before we fail with java.io.InterruptedIOException,
