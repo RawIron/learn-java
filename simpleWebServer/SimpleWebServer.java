@@ -38,32 +38,33 @@ class WebServer {
         initWorkerPool();
         ServerSocket serverSocket = new ServerSocket(settings.port);
         while (!isStopped()) {
-            Socket s = serverSocket.accept();
-            Worker w = hireWorkerFromPool();
+            Socket serveThisSocket = serverSocket.accept();
+            Worker w = hireWorkerFromPool(serveThisSocket);
         }
     }
 
     protected void initWorkerPool() {
         for (int i = 0; i < settings.maxWorkersInPool; ++i) {
-            Worker w = new Worker(settings);
+            Worker w = new Worker(workerPool, settings);
             (new Thread(w, "worker #"+i)).start();
             workerPool.addElement(w);
         }
     }
 
-    protected Worker hireWorkerFromPool() {
+    protected Worker hireWorkerFromPool(Socket s) {
         Worker w = null;
         synchronized (workerPool) {
             if (workerPool.isEmpty()) {
-                w = new Worker(settings);
+                w = new Worker(workerPool, settings);
                 w.youGotWorkWith(s);
                 (new Thread(w, "additional worker")).start();
             } else {
-                Worker w = workerPool.elementAt(0);
+                w = workerPool.elementAt(0);
                 workerPool.removeElementAt(0);
                 w.youGotWorkWith(s);
             }
         }
+        return w;
     }
 
     public void stop() {
@@ -81,31 +82,47 @@ class Worker implements Runnable {
     static final byte[] EOL = {(byte)'\r', (byte)'\n' };
 
     Config settings = null;
+    Vector<Worker> workerPool = null;
 
-    /* buffer to use for requests */
-    byte[] buf;
+    byte[] requestBuffer;
     int index;
     int nread;
-    /* Socket to client we're handling */
-    private Socket s;
+    protected Socket currentClient = null;
 
 
-    public Worker(Config config) {
+    public Worker(Vector<Worker> coworkers, Config config) {
+        this.workerPool = coworkers;
         this.settings = config;
-        buf = new byte[BUF_SIZE];
-        s = null;
+        requestBuffer = new byte[BUF_SIZE];
     }
 
 
-    public synchronized void youGotWorkWith(Socket s) {
-        this.s = s;
+    public synchronized void youGotWorkWith(Socket newClient) {
+        this.currentClient = newClient;
         notify();
+    }
+
+    protected boolean hasClient() {
+        if (currentClient == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    protected void doneWithClient() {
+        currentClient = null;
+        Vector<Worker> pool = workerPool;
+        synchronized (pool) {
+            if (pool.size() < settings.maxWorkersInPool) {
+                pool.addElement(this);
+            }
+        }
     }
 
     public synchronized void run() {
         while(true) {
-            if (s == null) {
-                /* nothing to do */
+            if (!hasClient()) {
                 try {
                     wait();
                 } catch (InterruptedException e) {
@@ -120,16 +137,7 @@ class Worker implements Runnable {
                 e.printStackTrace();
             }
 
-            /* go back in wait queue if there's fewer
-             * than numHandler connections.
-             */
-            s = null;
-            Vector<Worker> pool = WebServer.workerPool;
-            synchronized (pool) {
-                if (pool.size() < settings.maxWorkersInPool) {
-                    pool.addElement(this);
-                }
-            }
+            doneWithClient();
         }
     }
 
@@ -140,9 +148,9 @@ class Worker implements Runnable {
          * before we fail with java.io.InterruptedIOException,
          * at which point we will abandon the connection.
          */
-        s.setSoTimeout(WebServer.timeout);
-        s.setTcpNoDelay(true);
-        String hostAddress = s.getInetAddress().getHostAddress();
+        currentClient.setSoTimeout(settings.timeout);
+        currentClient.setTcpNoDelay(true);
+        String hostAddress = currentClient.getInetAddress().getHostAddress();
 
         resetBuffer();
 
@@ -150,12 +158,12 @@ class Worker implements Runnable {
             /* only support for HTTP GET/HEAD
              * HTTP options are ignored
              */
-            InputStream is = new BufferedInputStream(s.getInputStream());
+            InputStream is = new BufferedInputStream(currentClient.getInputStream());
             int nread = 0, r = 0;
 
 outerloop:
             while (nread < BUF_SIZE) {
-                r = is.read(buf, nread, BUF_SIZE - nread);
+                r = is.read(requestBuffer, nread, BUF_SIZE - nread);
                 if (r == -1) {
                     /* EOF */
                     return;
@@ -163,32 +171,31 @@ outerloop:
                 int i = nread;
                 nread += r;
                 for (; i < nread; i++) {
-                    if (buf[i] == (byte)'\n' || buf[i] == (byte)'\r') {
+                    if (requestBuffer[i] == (byte)'\n' || requestBuffer[i] == (byte)'\r') {
                         /* read one line */
                         break outerloop;
                     }
                 }
             }
 
-            PrintStream ps = new PrintStream(s.getOutputStream());
+            PrintStream ps = new PrintStream(currentClient.getOutputStream());
             index = 0;
-            boolean doingGet = extractMethod(buf, ps);
-            String fname = extractFilename(buf);
+            boolean doingGet = extractMethod(requestBuffer, ps);
+            String fname = extractFilename(requestBuffer);
             File targ = openFile(fname);
 
             StaticContentReverse proxy = new StaticContentReverse(settings.logger);
             proxy.deliverContent(doingGet, targ, ps, hostAddress);
 
         } finally {
-            s.close();
+            currentClient.close();
         }
-
     }
 
     protected void resetBuffer() {
         /* zero out the buffer from last time */
         for (int i = 0; i < BUF_SIZE; i++) {
-            buf[i] = 0;
+            requestBuffer[i] = 0;
         }
     }
 
@@ -219,7 +226,7 @@ outerloop:
                 ps.write(buf, 0, 5);
                 ps.write(EOL);
                 ps.flush();
-                s.close();
+                currentClient.close();
             } catch (IOException e) {}
         }
         return doingGet;
@@ -249,7 +256,7 @@ outerloop:
     }
 
     protected File openFile(String fname) {
-        File targ = new File(WebServer.root, fname);
+        File targ = new File(settings.root, fname);
         if (targ.isDirectory()) {
             File ind = new File(targ, "index.html");
             if (ind.exists()) {
