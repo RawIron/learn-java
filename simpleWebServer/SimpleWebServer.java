@@ -23,7 +23,7 @@ class WebServer {
     /* timeout on client connections */
     int timeout = 0;
 
-    stopped = false;
+    boolean stopped = false;
 
     public WebServer(WorkerPool workerPool, Config config) {
         this.workerPool = workerPool;

@@ -47,7 +47,7 @@ abstract class WorkerPool {
         }
     }
 
-    abstract protected Worker createWorker(WorkerPool, Config);
+    abstract protected Worker createWorker(WorkerPool pool, Config settings);
 }
 
 
