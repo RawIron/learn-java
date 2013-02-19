@@ -1,0 +1,47 @@
+/*
+ *
+ */
+
+package simpleWebServer;
+ 
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+import simpleWebServer.WorkerPool;
+
+
+class SocketServer {
+
+    Config settings = null;
+    WorkerPool workerPool = null;
+
+    /* the web server's virtual root */
+    File root;
+    /* timeout on client connections */
+    int timeout = 0;
+
+    boolean stopped = false;
+
+    public SocketServer(WorkerPool workerPool, Config config) {
+        this.workerPool = workerPool;
+        this.settings = config;
+    }
+
+    public void start() throws Exception {
+        ServerSocket serverSocket = new ServerSocket(settings.port);
+        while (!isStopped()) {
+            Socket serveThisSocket = serverSocket.accept();
+            Worker worker = workerPool.hireWorker();
+            worker.youGotWorkWith(serveThisSocket);
+        }
+    }
+
+    public void stop() {
+        stopped = true;
+    }
+    protected boolean isStopped() {
+        return stopped;
+    }
+}
+
