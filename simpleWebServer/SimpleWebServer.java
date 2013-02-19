@@ -23,23 +23,21 @@ class WorkerPool {
     
     public void init() {
         for (int i = 0; i < settings.maxWorkersInPool; ++i) {
-            Worker w = new Worker(workerPool, settings);
+            Worker w = new Worker(this, settings);
             (new Thread(w, "worker #"+i)).start();
             workerPool.addElement(w);
         }
     }
 
-    public Worker hireWorker(Socket s) {
+    public Worker hireWorker() {
         Worker w = null;
         synchronized (workerPool) {
             if (workerPool.isEmpty()) {
-                w = new Worker(workerPool, settings);
-                w.youGotWorkWith(s);
+                w = new Worker(this, settings);
                 (new Thread(w, "additional worker")).start();
             } else {
                 w = workerPool.elementAt(0);
                 workerPool.removeElementAt(0);
-                w.youGotWorkWith(s);
             }
         }
         return w;
@@ -58,52 +56,26 @@ class WorkerPool {
 class WebServer {
 
     Config settings = null;
-
-    Vector<Worker> workerPool = new Vector<Worker>();
-    int maxWorkersInPool = 5;
+    WorkerPool workerPool = null;
 
     /* the web server's virtual root */
     File root;
-
     /* timeout on client connections */
     int timeout = 0;
 
 
-    public WebServer(Config config) {
+    public WebServer(WorkerPool workerPool, Config config) {
+        this.workerPool = workerPool;
         this.settings = config;
     }
 
     public void start() throws Exception {
-        initWorkerPool();
         ServerSocket serverSocket = new ServerSocket(settings.port);
         while (!isStopped()) {
             Socket serveThisSocket = serverSocket.accept();
-            Worker w = hireWorkerFromPool(serveThisSocket);
+            Worker w = workerPool.hireWorker();
+            w.youGotWorkWith(serveThisSocket);
         }
-    }
-
-    protected void initWorkerPool() {
-        for (int i = 0; i < settings.maxWorkersInPool; ++i) {
-            Worker w = new Worker(workerPool, settings);
-            (new Thread(w, "worker #"+i)).start();
-            workerPool.addElement(w);
-        }
-    }
-
-    protected Worker hireWorkerFromPool(Socket s) {
-        Worker w = null;
-        synchronized (workerPool) {
-            if (workerPool.isEmpty()) {
-                w = new Worker(workerPool, settings);
-                w.youGotWorkWith(s);
-                (new Thread(w, "additional worker")).start();
-            } else {
-                w = workerPool.elementAt(0);
-                workerPool.removeElementAt(0);
-                w.youGotWorkWith(s);
-            }
-        }
-        return w;
     }
 
     public void stop() {
@@ -121,7 +93,7 @@ class Worker implements Runnable {
     static final byte[] EOL = {(byte)'\r', (byte)'\n' };
 
     Config settings = null;
-    Vector<Worker> workerPool = null;
+    WorkerPool workerPool = null;
 
     byte[] requestBuffer;
     int index;
@@ -129,7 +101,7 @@ class Worker implements Runnable {
     protected Socket currentClient = null;
 
 
-    public Worker(Vector<Worker> coworkers, Config config) {
+    public Worker(WorkerPool coworkers, Config config) {
         this.workerPool = coworkers;
         this.settings = config;
         requestBuffer = new byte[BUF_SIZE];
@@ -149,26 +121,24 @@ class Worker implements Runnable {
         }
     }
 
-    protected void doneWithClient() {
-        currentClient = null;
-        Vector<Worker> pool = workerPool;
-        synchronized (pool) {
-            if (pool.size() < settings.maxWorkersInPool) {
-                pool.addElement(this);
+    protected void waitForNextClient() {
+        if (!hasClient()) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                /* should not happen */
             }
         }
     }
 
+    protected void doneWithClient() {
+        currentClient = null;
+        workerPool.giveBack(this);
+    }
+
     public synchronized void run() {
         while(true) {
-            if (!hasClient()) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    /* should not happen */
-                    continue;
-                }
-            }
+            waitForNextClient();
 
             try {
                 handleClient();

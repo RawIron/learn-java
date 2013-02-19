@@ -10,6 +10,7 @@ import java.util.*;
 
 import simpleWebServer.Config;
 import simpleWebServer.Logger;
+import simpleWebServer.WorkerPool;
 
 
 class Runner {
@@ -25,7 +26,10 @@ class Runner {
         config.load();
         config.list();
 
-        WebServer webServer = new WebServer(config);
+        WorkerPool pool = new WorkerPool(config);
+        pool.init();
+
+        WebServer webServer = new WebServer(pool, config);
         webServer.start();
     }
 }
