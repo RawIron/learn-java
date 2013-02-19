@@ -25,7 +25,7 @@ class Runner {
         config.load();
         config.list();
 
-        WorkerPool pool = new WorkerPool(config);
+        WorkerPool pool = new HttpRequestWorkerPool(config);
         pool.init();
 
         WebServer webServer = new WebServer(pool, config);
