@@ -10,6 +10,9 @@ import java.util.*;
 
 
 abstract class Logger {
+    String lastMessageLogged = "";
+    int totalMessagesLogged = 0;
+
     public abstract void log(String message);
 }
 
@@ -38,6 +41,8 @@ class StreamLogger extends Logger {
 class SimpleLogger extends Logger {
     public void log(String message) {
         System.out.println(message);
+        lastMessageLogged = message;
+        ++totalMessagesLogged;
     }
 }
 

@@ -7,7 +7,7 @@ import simpleWebServer.Logger;
 
 public class LoggerTest extends TestCase {
 
-    private Logger logger;
+    protected Logger logger;
 
     protected void setUp() throws Exception {
         super.setUp();
@@ -17,16 +17,13 @@ public class LoggerTest extends TestCase {
         super.tearDown();
     }
 
-    public LoggerTest(String arg0) {
+    public LoggerTest() {
         super();
         logger = new SimpleLogger();
     }
 
-    public final void testAdd() {
-        assertEquals(logger.add(20, 30), 50);
-    }
-
-    public final void testSubtract() {
-        assertEquals(logger.subtract(60, 30), 30);
+    public final void testLog() {
+        logger.log("a simple message");
+        assertEquals(logger.totalMessagesLogged, 1);
     }
 }

@@ -16,13 +16,10 @@ import simpleWebServer.WebServer;
 
 class Runner {
     public static void main(String[] args) throws Exception {
-        int port = 8080;
-        if (args.length > 0) {
-            port = Integer.parseInt(args[0]);
-        }
+        Config commandLine = commandLineOptionsIntoConfig(args);
 
-        ConfigDefaults defaults = new ConfigDefaults();
         Logger logger = new SimpleLogger();
+        ConfigDefaults defaults = new ConfigDefaults();
 
         Config config = new Config(defaults, logger);
         config.load();
@@ -33,6 +30,15 @@ class Runner {
 
         WebServer webServer = new WebServer(pool, config);
         webServer.start();
+    }
+
+    protected Config commandLineOptionsIntoConfig(args) {
+        Config commandLineOptions = null;
+        int port = 8080;
+        if (args.length > 0) {
+            port = Integer.parseInt(args[0]);
+        }
+        return commandLineOptions;
     }
 }
 
