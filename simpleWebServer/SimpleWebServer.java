@@ -13,10 +13,12 @@ import simpleWebServer.FileExtensionToContentTypeMapper;
 
 
 class WorkerPool {
+    Config settings = null;
     Vector<Worker> workerPool = new Vector<Worker>();
     int maxWorkersInPool = 5;
 
-    public WorkerPool() {
+    public WorkerPool(Config config) {
+        this.settings = config;
     }
     
     public void init() {
@@ -45,8 +47,8 @@ class WorkerPool {
 
     public void giveBack(Worker worker) {
         synchronized (workerPool) {
-            if (pool.size() < settings.maxWorkersInPool) {
-                pool.addElement(worker);
+            if (workerPool.size() < settings.maxWorkersInPool) {
+                workerPool.addElement(worker);
             }
         }
     }
