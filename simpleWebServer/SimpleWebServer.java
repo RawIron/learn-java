@@ -11,8 +11,45 @@ import java.util.*;
 import static simpleWebServer.HttpConstants.*;
 import simpleWebServer.FileExtensionToContentTypeMapper;
 
-class WorkerPool {
 
+class WorkerPool {
+    Vector<Worker> workerPool = new Vector<Worker>();
+    int maxWorkersInPool = 5;
+
+    public WorkerPool() {
+    }
+    
+    public void init() {
+        for (int i = 0; i < settings.maxWorkersInPool; ++i) {
+            Worker w = new Worker(workerPool, settings);
+            (new Thread(w, "worker #"+i)).start();
+            workerPool.addElement(w);
+        }
+    }
+
+    public Worker hireWorker(Socket s) {
+        Worker w = null;
+        synchronized (workerPool) {
+            if (workerPool.isEmpty()) {
+                w = new Worker(workerPool, settings);
+                w.youGotWorkWith(s);
+                (new Thread(w, "additional worker")).start();
+            } else {
+                w = workerPool.elementAt(0);
+                workerPool.removeElementAt(0);
+                w.youGotWorkWith(s);
+            }
+        }
+        return w;
+    }
+
+    public void giveBack(Worker worker) {
+        synchronized (workerPool) {
+            if (pool.size() < settings.maxWorkersInPool) {
+                pool.addElement(worker);
+            }
+        }
+    }
 }
 
 
