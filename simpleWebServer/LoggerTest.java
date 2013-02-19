@@ -22,7 +22,7 @@ public class LoggerTest extends TestCase {
         logger = new SimpleLogger();
     }
 
-    public final void testLog() {
+    public final void test_oneMessageLogged() {
         logger.log("a simple message");
         assertEquals(logger.totalMessagesLogged, 1);
     }
