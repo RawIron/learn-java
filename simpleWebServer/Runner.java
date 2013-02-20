@@ -28,11 +28,11 @@ class Runner {
         WorkerPool pool = new HttpRequestWorkerPool(config);
         pool.init();
 
-        WebServer webServer = new SocketServer(pool, config);
+        SocketServer webServer = new SocketServer(pool, config);
         webServer.start();
     }
 
-    protected Config commandLineOptionsIntoConfig(args) {
+    protected static Config commandLineOptionsIntoConfig(String[] args) {
         Config commandLineOptions = null;
         int port = 8080;
         if (args.length > 0) {
