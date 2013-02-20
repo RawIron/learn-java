@@ -9,7 +9,6 @@ import java.net.*;
 import java.util.*;
 
 import static simpleWebServer.HttpConstants.*;
-import simpleWebServer.FileExtensionToContentTypeMapper;
 import simpleWebServer.WorkerPool;
 
 
