@@ -28,7 +28,8 @@ class HttpRequestWorkerPool extends WorkerPool {
 
 class HttpRequestWorker extends Worker {
 
-    final static int BUF_SIZE = 2048;
+    static final int BUFFER_SIZE = 2048;
+    static final int EOF = -1;
     static final byte[] EOL = {(byte)'\r', (byte)'\n' };
 
     byte[] requestBuffer;
@@ -37,7 +38,7 @@ class HttpRequestWorker extends Worker {
 
     public HttpRequestWorker(WorkerPool coworkers, Config config) {
         super(coworkers, config);
-        requestBuffer = new byte[BUF_SIZE];
+        requestBuffer = new byte[BUFFER_SIZE];
     }
 
 
@@ -49,86 +50,79 @@ class HttpRequestWorker extends Worker {
          */
         currentClient.setSoTimeout(settings.timeout);
         currentClient.setTcpNoDelay(true);
-        String hostAddress = currentClient.getInetAddress().getHostAddress();
 
         resetBuffer();
 
+        int httpMethod = HTTP_BAD_METHOD;
+        File targ = null;
         try {
-            /* only support for HTTP GET/HEAD
-             * HTTP options are ignored
-             */
             InputStream is = new BufferedInputStream(currentClient.getInputStream());
-            int nread = 0, r = 0;
+            int totalBytesRead = 0, bytesRead = 0;
 
-outerloop:
-            while (nread < BUF_SIZE) {
-                r = is.read(requestBuffer, nread, BUF_SIZE - nread);
-                if (r == -1) {
-                    /* EOF */
-                    return;
-                }
-                int i = nread;
-                nread += r;
-                for (; i < nread; i++) {
-                    if (requestBuffer[i] == (byte)'\n' || requestBuffer[i] == (byte)'\r') {
-                        /* read one line */
-                        break outerloop;
+            boolean firstLineComplete = false;
+            while(!firstLineComplete) {
+                while (totalBytesRead < BUFFER_SIZE) {
+                    bytesRead = is.read(requestBuffer, totalBytesRead, BUFFER_SIZE - totalBytesRead);
+                    if (bytesRead == EOF) {
+                        String message = "Line too long";
+                        throw new Exception();
                     }
+                    firstLineComplete = isLineComplete(totalBytesRead, totalBytesRead + bytesRead);
+                    totalBytesRead += bytesRead;
                 }
             }
 
-            PrintStream ps = new PrintStream(currentClient.getOutputStream());
+            nread = totalBytesRead;
             index = 0;
-            boolean doingGet = extractMethod(requestBuffer, ps);
-            String fname = extractFilename(requestBuffer);
-            File targ = openFile(fname);
-
-            StaticContentReverse proxy = new StaticContentReverse(settings.logger);
-            proxy.deliverContent(doingGet, targ, ps, hostAddress);
-
-        } finally {
-            currentClient.close();
+            httpMethod = extractMethod(requestBuffer);
+            if (httpMethod == HTTP_GET) {
+                String fname = extractFilename(requestBuffer);
+                targ = openFile(fname);
+            }
+        } catch (Exception e) {
+            /* sent error to client */
         }
+
+        StaticContentReverse proxy = new StaticContentReverse(settings.logger);
+        proxy.deliverContent(currentClient, httpMethod, targ);
+    }
+
+
+    protected boolean isLineComplete(int beginSearchAt, int endSearchAt) {
+        int i = beginSearchAt;
+        for (; i < endSearchAt; ++i) {
+            if (requestBuffer[i] == (byte)'\n' || requestBuffer[i] == (byte)'\r') {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void resetBuffer() {
         /* zero out the buffer from last time */
-        for (int i = 0; i < BUF_SIZE; i++) {
+        for (int i = 0; i < BUFFER_SIZE; i++) {
             requestBuffer[i] = 0;
         }
     }
 
-    protected boolean extractMethod(byte[] buf, PrintStream ps) {
-        /* are we doing a GET or just a HEAD */
-        boolean doingGet = false;
-        /* beginning of file name */
+    protected int extractMethod(byte[] buf) {
+        int method = HTTP_BAD_METHOD;
+
         if (buf[0] == (byte)'G' &&
             buf[1] == (byte)'E' &&
             buf[2] == (byte)'T' &&
             buf[3] == (byte)' ') {
-            doingGet = true;
+            method = HTTP_GET;
             index = 4;
-
         } else if (buf[0] == (byte)'H' &&
                    buf[1] == (byte)'E' &&
                    buf[2] == (byte)'A' &&
                    buf[3] == (byte)'D' &&
                    buf[4] == (byte)' ') {
-            doingGet = false;
+            method = HTTP_HEAD;
             index = 5;
-
-        } else {
-            /* we don't support this method */
-            try {
-                ps.print("HTTP/1.0 " + HTTP_BAD_METHOD +
-                           " unsupported method type: ");
-                ps.write(buf, 0, 5);
-                ps.write(EOL);
-                ps.flush();
-                currentClient.close();
-            } catch (IOException e) {}
         }
-        return doingGet;
+        return method;
     }
 
     protected String extractFilename(byte[] buf) {
@@ -173,21 +167,27 @@ class StaticContentReverse {
     static final byte[] EOL = {(byte)'\r', (byte)'\n' };
 
     Logger logger = null;
+    Socket client = null;
     FileExtensionToContentTypeMapper mapper = new FileExtensionToContentTypeMapper();
 
     public StaticContentReverse(Logger logger) {
         this.logger = logger;
     }
 
-    void deliverContent(boolean doingGet, File targ, PrintStream ps, String hostAddress) {
+    void deliverContent(Socket client, int httpMethod, File targ) {
+        String hostAddress = client.getInetAddress().getHostAddress();
+
         try {
+        PrintStream ps = new PrintStream(client.getOutputStream());
         boolean OK = printHeaders(targ, ps, hostAddress);
-        if (doingGet) {
+        if (httpMethod == HTTP_GET) {
             if (OK) {
                 sendFile(targ, ps);
             } else {
-                send404(targ, ps);
+                send404(ps);
             }
+        } else if (httpMethod == HTTP_BAD_METHOD) {
+            send405(ps);
         }
         } catch (IOException e) {}
     }
@@ -216,6 +216,7 @@ class StaticContentReverse {
         ps.write(EOL);
         ps.print("Date: " + (new Date()));
         ps.write(EOL);
+
         if (ret) {
             if (!targ.isDirectory()) {
                 ps.print("Content-length: "+targ.length());
@@ -242,11 +243,20 @@ class StaticContentReverse {
         return ret;
     }
 
-    void send404(File targ, PrintStream ps) throws IOException {
+    void send404(PrintStream ps) throws IOException {
         ps.write(EOL);
-        ps.write(EOL);
-        ps.println("Not Found\n\n"+
+        ps.println("Not Found\n\n" +
                    "The requested resource was not found.\n");
+        ps.flush();
+        client.close();
+    }
+
+    void send405(PrintStream ps) throws IOException {
+        ps.write(EOL);
+        ps.println("HTTP/1.0 " + HTTP_BAD_METHOD +
+                   " unsupported method type: ");
+        ps.flush();
+        client.close();
     }
 
     void sendFile(File targ, PrintStream ps) throws IOException {

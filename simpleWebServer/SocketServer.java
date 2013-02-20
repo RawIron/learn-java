@@ -15,12 +15,6 @@ class SocketServer {
 
     Config settings = null;
     WorkerPool workerPool = null;
-
-    /* the web server's virtual root */
-    File root;
-    /* timeout on client connections */
-    int timeout = 0;
-
     boolean stopped = false;
 
     public SocketServer(WorkerPool workerPool, Config config) {
