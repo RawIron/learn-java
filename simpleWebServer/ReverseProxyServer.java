@@ -28,7 +28,7 @@ class ReverseProxyServer {
 
     public void deliverContent(Socket client, int httpMethod, File targ) {
         String hostAddress = client.getInetAddress().getHostAddress();
-        int httpCode;
+        int httpCode = HTTP_OK;
 
         try {
         PrintStream ps = new PrintStream(client.getOutputStream());
@@ -76,7 +76,9 @@ class ReverseProxyServer {
         ps.write(EOL);
     }
 
-    protected void printContentType(File targ, PrintStream ps) {
+    protected void printContentType(File targ, PrintStream ps)
+        throws IOException
+    {
         if (!targ.isDirectory()) {
             ps.print("Content-length: "+targ.length());
             ps.write(EOL);
