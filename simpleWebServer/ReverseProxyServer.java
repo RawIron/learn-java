@@ -29,9 +29,10 @@ class ReverseProxyServer {
     public void deliverContent(Socket client, int httpMethod, File targ) {
         String hostAddress = client.getInetAddress().getHostAddress();
         int httpCode = HTTP_OK;
+        PrintStream ps = null;
 
         try {
-        PrintStream ps = new PrintStream(client.getOutputStream());
+        ps = new PrintStream(client.getOutputStream());
 
         if (targ == null) {
             httpMethod = HTTP_HEAD;
@@ -56,6 +57,9 @@ class ReverseProxyServer {
         } else if (httpMethod == HTTP_BAD_METHOD) {
             send405(ps);
         }
+
+        ps.flush();
+        client.close();
         } catch (IOException e) {}
     }
 
@@ -106,16 +110,12 @@ class ReverseProxyServer {
         ps.write(EOL);
         ps.println("Not Found\n\n" +
                    "The requested resource was not found.\n");
-        ps.flush();
-        client.close();
     }
 
     protected void send405(PrintStream ps) throws IOException {
         ps.write(EOL);
         ps.println("HTTP/1.0 " + HTTP_BAD_METHOD +
                    " unsupported method type: ");
-        ps.flush();
-        client.close();
     }
 
     protected void sendFile(File targ, PrintStream ps) throws IOException {

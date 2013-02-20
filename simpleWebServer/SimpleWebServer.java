@@ -1,5 +1,5 @@
 /*
- * simple, multi-threaded HTTP server
+ * 
  */
 
 package simpleWebServer;
@@ -30,7 +30,7 @@ class HttpRequestWorker extends Worker {
 
     static final int BUFFER_SIZE = 2048;
     static final int EOF = -1;
-    static final byte[] EOL = {(byte)'\r', (byte)'\n' };
+    static final byte[] EOL = {(byte)'\r', (byte)'\n'};
 
     byte[] requestBuffer;
     int index;
@@ -44,10 +44,6 @@ class HttpRequestWorker extends Worker {
 
     protected void handleClient() throws IOException {
 
-        /* we will only block in read for this many milliseconds
-         * before we fail with java.io.InterruptedIOException,
-         * at which point we will abandon the connection.
-         */
         currentClient.setSoTimeout(settings.timeout);
         currentClient.setTcpNoDelay(true);
 
@@ -61,14 +57,16 @@ class HttpRequestWorker extends Worker {
 
             boolean firstLineComplete = false;
             while(!firstLineComplete) {
-                while (totalBytesRead < BUFFER_SIZE) {
-                    bytesRead = is.read(requestBuffer, totalBytesRead, BUFFER_SIZE - totalBytesRead);
-                    if (bytesRead == EOF) {
-                        String message = "Line too long";
-                        throw new Exception();
-                    }
-                    firstLineComplete = isLineComplete(totalBytesRead, totalBytesRead + bytesRead);
-                    totalBytesRead += bytesRead;
+                bytesRead = is.read(requestBuffer, totalBytesRead, BUFFER_SIZE - totalBytesRead);
+                if (bytesRead == EOF) {
+                    String message = "Line too long";
+                    throw new Exception();
+                }
+                firstLineComplete = isLineComplete(totalBytesRead, totalBytesRead + bytesRead);
+                totalBytesRead += bytesRead;
+                if (totalBytesRead >= BUFFER_SIZE) {
+                    String message = "Line too long";
+                    throw new Exception();
                 }
             }
 
@@ -81,6 +79,7 @@ class HttpRequestWorker extends Worker {
             }
         } catch (Exception e) {
             /* sent error to client */
+            httpMethod = HTTP_HEAD;
         }
 
         ReverseProxyServer proxy = new ReverseProxyServer(settings.logger);
@@ -91,9 +90,10 @@ class HttpRequestWorker extends Worker {
 
 
     protected boolean isLineComplete(int beginSearchAt, int endSearchAt) {
-        int i = beginSearchAt;
-        for (; i < endSearchAt; ++i) {
-            if (requestBuffer[i] == (byte)'\n' || requestBuffer[i] == (byte)'\r') {
+        int newline = (byte)'\n';
+        int creturn = (byte)'\r';
+        for (int i = beginSearchAt; i < endSearchAt; ++i) {
+            if ((requestBuffer[i] == creturn) || (requestBuffer[i] == newline)) {
                 return true;
             }
         }
