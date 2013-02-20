@@ -83,7 +83,7 @@ class HttpRequestWorker extends Worker {
             /* sent error to client */
         }
 
-        StaticContentReverse proxy = new StaticContentReverse(settings.logger);
+        ReverseProxyServer proxy = new ReverseProxyServer(settings.logger);
         proxy.deliverContent(currentClient, httpMethod, targ);
 
         return;

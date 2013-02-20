@@ -10,8 +10,8 @@ import java.util.*;
 
 import simpleWebServer.Config;
 import simpleWebServer.Logger;
-import simpleWebServer.WorkerPool;
 import simpleWebServer.SocketServer;
+import simpleWebServer.HttpRequestWorkerPool;
 
 
 class Runner {

@@ -13,7 +13,7 @@ import simpleWebServer.FileExtensionToContentTypeMapper;
 import simpleWebServer.WorkerPool;
 
 
-class StaticContentReverse {
+class ReverseProxyServer {
 
     static final int BUF_SIZE = 2048;
     static final byte[] EOL = {(byte)'\r', (byte)'\n' };
@@ -22,80 +22,85 @@ class StaticContentReverse {
     Socket client = null;
     FileExtensionToContentTypeMapper mapper = new FileExtensionToContentTypeMapper();
 
-    public StaticContentReverse(Logger logger) {
+    public ReverseProxyServer(Logger logger) {
         this.logger = logger;
     }
 
-    void deliverContent(Socket client, int httpMethod, File targ) {
+    public void deliverContent(Socket client, int httpMethod, File targ) {
         String hostAddress = client.getInetAddress().getHostAddress();
+        int httpCode;
 
         try {
         PrintStream ps = new PrintStream(client.getOutputStream());
-        boolean OK = printHeaders(targ, ps, hostAddress);
-        if (httpMethod == HTTP_GET) {
-            if (OK) {
-                sendFile(targ, ps);
-            } else {
+
+        if (targ == null) {
+            httpMethod = HTTP_HEAD;
+            httpCode = HTTP_OK;
+        }
+
+        if (httpMethod == HTTP_HEAD) {
+            printHeader(httpCode, ps);
+        } else if (httpMethod == HTTP_GET) {
+            if (!targ.exists()) {
+                httpCode = HTTP_NOT_FOUND;
+                printHeader(httpCode, ps);
                 send404(ps);
+            }  else {
+                httpCode = HTTP_OK;
+                printHeader(httpCode, ps);
+                printContentType(targ, ps);
+                sendFile(targ, ps);
             }
+            logger.log("From " + hostAddress + ": GET " +
+                       targ.getAbsolutePath() + "-->" + httpCode);
         } else if (httpMethod == HTTP_BAD_METHOD) {
             send405(ps);
         }
         } catch (IOException e) {}
     }
 
-    boolean printHeaders(File targ, PrintStream ps, String hostAddress)
+    protected void printHeader(int httpCode, PrintStream ps)
         throws IOException
     {
-        boolean ret = false;
-        int rCode = 0;
-
-        if (!targ.exists()) {
-            rCode = HTTP_NOT_FOUND;
+        if (httpCode == HTTP_NOT_FOUND) {
             ps.print("HTTP/1.0 " + HTTP_NOT_FOUND + " not found");
             ps.write(EOL);
-            ret = false;
-        }  else {
-            rCode = HTTP_OK;
+        } else if (httpCode == HTTP_OK) {
             ps.print("HTTP/1.0 " + HTTP_OK+" OK");
             ps.write(EOL);
-            ret = true;
         }
-        logger.log("From " + hostAddress + ": GET " +
-            targ.getAbsolutePath() + "-->" + rCode);
 
         ps.print("Server: Simple java");
         ps.write(EOL);
         ps.print("Date: " + (new Date()));
         ps.write(EOL);
-
-        if (ret) {
-            if (!targ.isDirectory()) {
-                ps.print("Content-length: "+targ.length());
-                ps.write(EOL);
-                ps.print("Last Modified: " + (new
-                              Date(targ.lastModified())));
-                ps.write(EOL);
-                String name = targ.getName();
-                int ind = name.lastIndexOf('.');
-                String ct = null;
-                if (ind > 0) {
-                    ct = mapper.extensionsToContent.get(name.substring(ind));
-                }
-                if (ct == null) {
-                    ct = "unknown/unknown";
-                }
-                ps.print("Content-type: " + ct);
-                ps.write(EOL);
-            } else {
-                ps.print("Content-type: text/html");
-                ps.write(EOL);
-            }
-        }
-        return ret;
     }
 
-    void send404(PrintStream ps) throws IOException {
+    protected void printContentType(File targ, PrintStream ps) {
+        if (!targ.isDirectory()) {
+            ps.print("Content-length: "+targ.length());
+            ps.write(EOL);
+            ps.print("Last Modified: " + (new
+                          Date(targ.lastModified())));
+            ps.write(EOL);
+            String name = targ.getName();
+            int ind = name.lastIndexOf('.');
+            String ct = null;
+            if (ind > 0) {
+                ct = mapper.extensionsToContent.get(name.substring(ind));
+            }
+            if (ct == null) {
+                ct = "unknown/unknown";
+            }
+            ps.print("Content-type: " + ct);
+            ps.write(EOL);
+        } else {
+            ps.print("Content-type: text/html");
+            ps.write(EOL);
+        }
+    }
+
+    protected void send404(PrintStream ps) throws IOException {
         ps.write(EOL);
         ps.println("Not Found\n\n" +
                    "The requested resource was not found.\n");
@@ -103,7 +108,7 @@ class StaticContentReverse {
         client.close();
     }
 
-    void send405(PrintStream ps) throws IOException {
+    protected void send405(PrintStream ps) throws IOException {
         ps.write(EOL);
         ps.println("HTTP/1.0 " + HTTP_BAD_METHOD +
                    " unsupported method type: ");
@@ -111,7 +116,7 @@ class StaticContentReverse {
         client.close();
     }
 
-    void sendFile(File targ, PrintStream ps) throws IOException {
+    protected void sendFile(File targ, PrintStream ps) throws IOException {
         InputStream is = null;
         ps.write(EOL);
         if (targ.isDirectory()) {
@@ -132,7 +137,7 @@ class StaticContentReverse {
         }
     }
 
-    void listDirectory(File dir, PrintStream ps) throws IOException {
+    protected void listDirectory(File dir, PrintStream ps) throws IOException {
         ps.println("<TITLE>Directory listing</TITLE><P>\n");
         ps.println("<A HREF=\"..\">Parent Directory</A><BR>\n");
         String[] list = dir.list();
