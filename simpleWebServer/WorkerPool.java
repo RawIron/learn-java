@@ -69,6 +69,21 @@ abstract class Worker implements Runnable {
         notify();
     }
 
+    public synchronized void run() {
+        while(true) {
+            waitForNextClient();
+
+            try {
+                handleClient();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            doneWithClient();
+        }
+    }
+
+
     protected boolean hasClient() {
         if (currentClient == null) {
             return false;
@@ -90,21 +105,6 @@ abstract class Worker implements Runnable {
     protected void doneWithClient() {
         currentClient = null;
         workerPool.giveBack(this);
-    }
-
-
-    public synchronized void run() {
-        while(true) {
-            waitForNextClient();
-
-            try {
-                handleClient();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            doneWithClient();
-        }
     }
 
     abstract protected void handleClient() throws IOException;

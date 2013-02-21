@@ -11,7 +11,7 @@ import java.util.*;
 import simpleWebServer.Config;
 import simpleWebServer.Logger;
 import simpleWebServer.SocketServer;
-import simpleWebServer.HttpRequestWorkerPool;
+import simpleWebServer.HttpRequestStreamWorkerPool;
 
 
 class Runner {
@@ -25,7 +25,7 @@ class Runner {
         config.load();
         config.list();
 
-        WorkerPool pool = new HttpRequestWorkerPool(config);
+        WorkerPool pool = new HttpRequestStreamWorkerPool(config);
         pool.init();
 
         SocketServer webServer = new SocketServer(pool, config);

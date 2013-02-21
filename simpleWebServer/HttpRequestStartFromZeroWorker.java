@@ -13,20 +13,20 @@ import simpleWebServer.WorkerPool;
 import simpleWebServer.ReverseProxyServer;
 
 
-class HttpRequestWorkerPool extends WorkerPool {
+class HttpRequestStartFromZeroWorkerPool extends WorkerPool {
 
-    public HttpRequestWorkerPool(Config settings) {
+    public HttpRequestStartFromZeroWorkerPool(Config settings) {
         super(settings);
     }
 
     protected Worker createWorker(WorkerPool pool, Config settings) {
-        Worker w = new HttpRequestWorker(pool, settings);
+        Worker w = new HttpRequestStartFromZeroWorker(pool, settings);
         return w;
     }
 }
 
 
-class HttpRequestWorker extends Worker {
+class HttpRequestStartFromZeroWorker extends Worker {
 
     static final int BUFFER_SIZE = 2048;
     static final int EOF = -1;
@@ -36,7 +36,7 @@ class HttpRequestWorker extends Worker {
     int index;
     int nread;
 
-    public HttpRequestWorker(WorkerPool coworkers, Config config) {
+    public HttpRequestStartFromZeroWorker(WorkerPool coworkers, Config config) {
         super(coworkers, config);
         requestBuffer = new byte[BUFFER_SIZE];
     }
