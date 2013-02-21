@@ -29,7 +29,6 @@ class ConfigDefaults {
         c.port = 8080;
         c.timeout = 5000;
         c.maxWorkersInPool = 5;
-        c.logger = new SimpleLogger();
     }
 
     public void checkAndComplete(Config c) {
@@ -113,6 +112,7 @@ class Config {
         logger.log("root=" + root);
         logger.log("timeout=" + timeout);
         logger.log("workers=" + maxWorkersInPool);
+        logger.log("logger=" + logger.getClass());
     }
 }
 
