@@ -53,22 +53,7 @@ class HttpRequestWorker extends Worker {
         File targ = null;
         try {
             InputStream is = new BufferedInputStream(currentClient.getInputStream());
-            int totalBytesRead = 0, bytesRead = 0;
-
-            boolean firstLineComplete = false;
-            while(!firstLineComplete) {
-                bytesRead = is.read(requestBuffer, totalBytesRead, BUFFER_SIZE - totalBytesRead);
-                if (bytesRead == EOF) {
-                    String message = "Line too long";
-                    throw new Exception();
-                }
-                firstLineComplete = isLineComplete(totalBytesRead, totalBytesRead + bytesRead);
-                totalBytesRead += bytesRead;
-                if (totalBytesRead >= BUFFER_SIZE) {
-                    String message = "Line too long";
-                    throw new Exception();
-                }
-            }
+            int totalBytesRead = readFirstLine(is);
 
             nread = totalBytesRead;
             index = 0;
@@ -89,6 +74,26 @@ class HttpRequestWorker extends Worker {
     }
 
 
+    protected int readFirstLine(InputStream is) throws IOException, Exception {
+        int totalBytesRead = 0, bytesRead = 0;
+        boolean firstLineComplete = false;
+
+        while(!firstLineComplete) {
+            bytesRead = is.read(requestBuffer, totalBytesRead, BUFFER_SIZE - totalBytesRead);
+            if (bytesRead == EOF) {
+                String message = "reached end of request before line complete";
+                throw new Exception();
+            }
+            firstLineComplete = isLineComplete(totalBytesRead, totalBytesRead + bytesRead);
+            totalBytesRead += bytesRead;
+            if (totalBytesRead >= BUFFER_SIZE) {
+                String message = "Line too long";
+                throw new Exception();
+            }
+        }
+        return totalBytesRead;
+    }
+
     protected boolean isLineComplete(int beginSearchAt, int endSearchAt) {
         int newline = (byte)'\n';
         int creturn = (byte)'\r';
@@ -101,7 +106,6 @@ class HttpRequestWorker extends Worker {
     }
 
     protected void resetBuffer() {
-        /* zero out the buffer from last time */
         for (int i = 0; i < BUFFER_SIZE; i++) {
             requestBuffer[i] = 0;
         }
