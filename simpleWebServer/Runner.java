@@ -18,7 +18,7 @@ class Runner {
     public static void main(String[] args) throws Exception {
         Config commandLine = commandLineOptionsIntoConfig(args);
 
-        Logger logger = new SimpleLogger();
+        Logger logger = new ConsoleLogger();
         ConfigDefaults defaults = new ConfigDefaults();
 
         Config config = new Config(defaults, logger);

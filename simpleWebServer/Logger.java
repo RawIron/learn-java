@@ -4,9 +4,11 @@
  
 package simpleWebServer;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.PrintStream;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.util.logging.*;
 
 
 abstract class Logger {
@@ -23,8 +25,9 @@ class StreamLogger extends Logger {
 
     public StreamLogger(String logName) {
         try {
-            this.log = new PrintStream(new BufferedOutputStream(
-                              new FileOutputStream(logName)));
+            this.log = new PrintStream(
+                            new BufferedOutputStream(
+                            new FileOutputStream(logName)));
         } catch (FileNotFoundException e) {
         }
     }
@@ -34,6 +37,8 @@ class StreamLogger extends Logger {
             log.println(message);
             log.flush();
         }
+        lastMessageLogged = message;
+        ++totalMessagesLogged;
     }
 }
 
@@ -43,6 +48,19 @@ class SimpleLogger extends Logger {
         System.out.println(message);
         lastMessageLogged = message;
         ++totalMessagesLogged;
+    }
+}
+
+
+class ConsoleLogger extends Logger {
+    ConsoleHandler consoleHandler = null;
+    public ConsoleLogger() {
+        consoleHandler = new ConsoleHandler();
+    }
+
+    public void log(String message) {
+        LogRecord r = new LogRecord(Level.INFO, message);
+        consoleHandler.publish(r);
     }
 }
 

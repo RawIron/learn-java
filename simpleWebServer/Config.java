@@ -9,6 +9,13 @@ import java.net.*;
 import java.util.*;
 
 
+class WebRootNotFoundError extends Exception {
+    private static final long serialVersionUID = 0L;
+    public WebRootNotFoundError(String message) {
+        super(message);
+    }
+}
+
 class ConfigDefaults {
 
     public ConfigDefaults() {}
@@ -58,7 +65,7 @@ class Config {
         this.defaults = defaults;
     }
 
-    public void load() throws IOException {
+    public void load() throws IOException, WebRootNotFoundError {
         File storedProperties = new File(System.getProperty("java.home")
                     + File.separator
                     + "lib" + File.separator + "www-server.properties");
@@ -77,12 +84,13 @@ class Config {
         defaults.checkAndComplete(this);
     }
 
-    protected void assign(Properties properties) {
+    protected void assign(Properties properties) throws WebRootNotFoundError {
         String rootDirName = properties.getProperty("root");
         if (rootDirName != null) {
             root = new File(rootDirName);
             if (!root.exists()) {
-                throw new Error(rootDirName + " doesn't exist as server root");
+                String message = rootDirName + " doesn't exist as server root";
+                throw new WebRootNotFoundError(message);
             }
         }
         String property = "";
