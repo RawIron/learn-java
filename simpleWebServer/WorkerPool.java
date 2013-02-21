@@ -18,10 +18,12 @@ abstract class WorkerPool {
     }
     
     public void init() {
-        for (int i = 0; i < settings.maxWorkersInPool; ++i) {
-            Worker w = createWorker(this, settings);
-            (new Thread(w, "worker #"+i)).start();
-            workerPool.addElement(w);
+        synchronized (workerPool) {
+            for (int i = 0; i < settings.maxWorkersInPool; ++i) {
+                Worker w = createWorker(this, settings);
+                (new Thread(w, "worker #"+i)).start();
+                workerPool.addElement(w);
+            }
         }
     }
 
