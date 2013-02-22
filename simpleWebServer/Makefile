@@ -1,4 +1,5 @@
 
+cd ./workspace_java/simpleWebServer
 rm -f *.class
 
 
