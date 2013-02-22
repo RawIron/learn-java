@@ -18,7 +18,8 @@ class Runner {
     public static void main(String[] args) throws Exception {
         Config commandLine = commandLineOptionsIntoConfig(args);
 
-        Logger logger = new ConsoleLogger();
+        LoggerFactory loggerFactory = new LoggerFactory();
+        Logger logger = loggerFactory.build(LoggerModels.DEFAULT);
         ConfigDefaults defaults = new ConfigDefaults();
 
         Config config = new Config(defaults, logger);

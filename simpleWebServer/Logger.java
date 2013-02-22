@@ -11,17 +11,63 @@ import java.io.FileNotFoundException;
 import java.util.logging.*;
 
 
+class LoggerBuildException extends Exception {
+    private static final long serialVersionUID = 0L;
+    public LoggerBuildException(String message) {
+        super(message);
+    }
+}
+
+
+class LoggerModels {
+    public static final int DEFAULT = 0;
+    public static final int FILE = 1;
+    public static final int CONSOLE = 2;
+}
+
+class LoggerFactory {
+    public Logger build(int model) throws LoggerBuildException {
+        switch(model) {
+        case LoggerModels.DEFAULT:
+            return new SimpleLogger();
+        case LoggerModels.CONSOLE:
+            return new ConsoleLogger();
+        default:
+            String message = "";
+            throw new LoggerBuildException(message);
+        }
+    }
+
+    public Logger build(int model, String fileName) throws LoggerBuildException {
+        switch(model) {
+        case LoggerModels.FILE:
+            return new StreamLogger(fileName);
+        default:
+            String message = "";
+            throw new LoggerBuildException(message);
+        }
+    }
+}
+
+
 abstract class Logger {
-    String lastMessageLogged = "";
-    int totalMessagesLogged = 0;
+    protected String lastMessageLogged = "";
+    protected int totalMessagesLogged = 0;
 
     public abstract void log(String message);
 }
 
 
-class StreamLogger extends Logger {
+class SimpleLogger extends Logger {
+    public void log(String message) {
+        System.out.println(message);
+        lastMessageLogged = message;
+        ++totalMessagesLogged;
+    }
+}
 
-    PrintStream log = null;
+class StreamLogger extends Logger {
+    protected PrintStream log = null;
 
     public StreamLogger(String logName) {
         try {
@@ -43,19 +89,11 @@ class StreamLogger extends Logger {
 }
 
 
-class SimpleLogger extends Logger {
-    public void log(String message) {
-        System.out.println(message);
-        lastMessageLogged = message;
-        ++totalMessagesLogged;
-    }
-}
-
-
 class ConsoleLogger extends Logger {
-    ConsoleHandler consoleHandler = null;
+    protected ConsoleHandler consoleHandler = null;
+
     public ConsoleLogger() {
-        consoleHandler = new ConsoleHandler();
+        this.consoleHandler = new ConsoleHandler();
     }
 
     public void log(String message) {
