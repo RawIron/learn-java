@@ -19,10 +19,8 @@ public class ByteArrayTest extends VowsTestCase {
     }
 
     public final void test_shouldFindTheByteNeedle() {
-        try {
         byte needle = (byte)'\r';
         expect(topic(needle)).to_be_true();
-        } catch (VowBrokenException e) {}
     }
 }
 

@@ -3,50 +3,45 @@ package gotchas;
 import junit.framework.TestCase;
 
 
-class VowBrokenException extends Exception {
-    private static final long uid = 0L;
-    public VowBrokenException(String message) {
-        super(message);
-    }
-}
-
-
 class VowsTestCase extends TestCase {
     public VowsTestCase() {
         super();
     }
-    public VowAssert expect(boolean outcome) {
+    public VowExceptionAssert expect(Object outcome) {
+        VowExceptionAssert v = new VowExceptionAssert(outcome);
+        return v;
+    }
+    public boolean topic() {
+        // set handler for exception
+        return false;
+    }
+    public VowBooleanAssert expect(boolean outcome) {
         VowBooleanAssert v = new VowBooleanAssert(outcome);
         return v;
     }
 }
 
 
-abstract class VowAssert extends TestCase {
-    public VowAssert() {
-        super();
-    }
-    protected abstract boolean to_be_true() throws VowBrokenException;
-    protected abstract boolean to_be_false() throws VowBrokenException;
-}
-
-
-class VowBooleanAssert extends VowAssert {
+class VowBooleanAssert extends TestCase {
     boolean outcome = false; 
     public VowBooleanAssert(boolean outcome) {
         this.outcome = outcome;
     }
-    public boolean to_be_false() throws VowBrokenException {
+    public void to_be_false() {
         assertEquals(outcome, false);
-        outcome = !outcome;
-        return to_be_true();
     }
-    public boolean to_be_true() throws VowBrokenException {
+    public void to_be_true() {
         assertEquals(outcome, true);
-        if (outcome != true) {
-            throw new VowBrokenException("");
-        }
-        return true;
+    }
+}
+
+
+class VowExceptionAssert extends TestCase {
+    Object outcome = null; 
+    public VowExceptionAssert(Object outcome) {
+        this.outcome = outcome;
+    }
+    public void to_be_an_error_like(String exceptionClassName) {
     }
 }
 
