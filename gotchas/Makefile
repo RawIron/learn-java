@@ -9,6 +9,10 @@ ATest.class:	ATest.java junit.jar
 ByteArrayTest.class:	ByteArrayTest.java Vows.class junit.jar
 	javac -classpath '../junit.jar:..' ByteArrayTest.java
 
+TheNullTest.class:	TheNullTest.java junit.jar
+	javac -classpath '../junit.jar:..' TheNullTest.java
+
+
 
 tests:	ATest.class ByteArrayTest.class
 	java -classpath '../junit.jar:..' junit.textui.TestRunner gotchas.ByteArrayTest
