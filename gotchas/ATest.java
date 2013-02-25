@@ -1,3 +1,4 @@
+package gotchas;
 
 import junit.framework.TestCase;
 

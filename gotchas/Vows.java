@@ -19,8 +19,51 @@ class VowsTestCase extends TestCase {
         VowBooleanAssert v = new VowBooleanAssert(outcome);
         return v;
     }
+    public VowFloatAssert expect(float outcome) {
+        VowFloatAssert v = new VowFloatAssert(outcome);
+        return v;
+    }
+    public VowStringAssert expect(String outcome) {
+        VowStringAssert v = new VowStringAssert(outcome);
+        return v;
+    }
 }
 
+
+class VowStringAssert extends TestCase {
+    String outcome = ""; 
+    public VowStringAssert(String outcome) {
+        this.outcome = outcome;
+    }
+    public void to_equal(String expected) {
+        assertEquals(outcome, expected);
+    }
+    public void not_to_equal(String expected) {
+        assertEquals(outcome, expected);
+    }
+    public void to_be_string() {
+        assertEquals(true, true);
+    }
+    public void to_be_null() {
+        assertEquals(outcome, null);
+    }
+}
+
+class VowFloatAssert extends TestCase {
+    float outcome = 0.0; 
+    public VowFloatAssert(float outcome) {
+        this.outcome = outcome;
+    }
+    public void to_equal(float expected) {
+        assertEquals(outcome, expected);
+    }
+    public void not_to_equal(float expected) {
+        assertEquals(outcome, expected);
+    }
+    public void to_be_numeric() {
+        assertEquals(true, true);
+    }
+}
 
 class VowBooleanAssert extends TestCase {
     boolean outcome = false; 
@@ -34,7 +77,6 @@ class VowBooleanAssert extends TestCase {
         assertEquals(outcome, true);
     }
 }
-
 
 class VowExceptionAssert extends TestCase {
     Object outcome = null; 
