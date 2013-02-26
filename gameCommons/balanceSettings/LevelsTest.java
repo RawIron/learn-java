@@ -8,7 +8,7 @@ import gameCommons.balanceSettings.DataLevel;
 import gameCommons.balanceSettings.DataItemLevel;
 
 
-class LevelsTest extends TestCase {
+public class LevelsTest extends TestCase {
     public LevelsTest() {
         super();
     }
