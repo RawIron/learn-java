@@ -1,4 +1,4 @@
-package gameCommons.data;
+package gameCommons.balanceSettings;
 
 import java.sql.DriverManager;
 import java.sql.Connection;
@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-import gameCommons.data.DataStore;
+import gameCommons.balanceSettings.DataStore;
 import gameCommons.system.Trace;
 
 

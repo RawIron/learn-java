@@ -1,4 +1,4 @@
-package gameCommons.data;
+package gameCommons.balanceSettings;
 
 public class DataItemAchievement {
 	public String name;

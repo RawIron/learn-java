@@ -1,8 +1,8 @@
-package gameCommons.data;
+package gameCommons.balanceSettings;
 
 import java.util.HashMap;
 import gameCommons.system.Trace;
-import gameCommons.data.DataStore;
+import gameCommons.balanceSettings.DataStore;
 
 
 public class StaticDataCache {}
