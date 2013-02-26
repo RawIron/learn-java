@@ -1,6 +1,8 @@
 package gameCommons.balanceSettings;
 
 import gameCommons.balanceSettings.DataLevel;
+import gameCommons.balanceSettings.jdbcDB;
+import gameCommons.system.Trace;
 
 
 /*
@@ -17,10 +19,11 @@ public class Levels {
     }
 
     public DataItemLevel with(int key) {
-        return settings.cached(key);
+        return settings.cached.get(key);
     }
 
     protected DataLevel create() {
-        return new DataLevel();
+        Trace t = new Trace();
+        return new DataLevel(new jdbcDB(t), t);
     }
 }

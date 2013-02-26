@@ -16,6 +16,6 @@ class LevelsTest extends TestCase {
     public final void test_should_need_100_xp() {
         DataLevel mock = mock(DataLevel.class);
         DataItemLevel level = mock.cached.get(12);
-        assertEqual(level.level, 12);
+        assertEquals(level.level, 12);
     }
 }

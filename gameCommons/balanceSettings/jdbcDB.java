@@ -50,7 +50,8 @@ public class jdbcDB implements DataStore {
     }
 
     protected Connection connect() {
-        // Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/test"+"user=reader&password=hello");
+        Connection con = null;
+        // con = DriverManager.getConnection("jdbc:mysql://localhost:3306/test"+"user=reader&password=hello");
         return con;
     }
 

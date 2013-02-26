@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 
 
-public abstract class DbManager {}
+abstract class DbManager {}
 
 public interface DataStore {
     public HashMap<String,Connection> retrieve();
