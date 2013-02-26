@@ -1,37 +1,28 @@
 package gotchas;
 
-import junit.framework.TestCase;
+import gotchas.VowsTestCase;
 
 
-public class TheNullTest extends TestCase {
+public class TheNullTest extends VowsTestCase {
 
-    public class ForIntegers extends TestCase {
-        private int topic() {
+    public class ForFloatTest extends VowsTestCase {
+        private float topic() {
             return 0;
         }
-        public final void should_not_allow_assignment() {
-            int outcome = topic();
-            // outcome = (int) null;
-            assertEquals(outcome, null);
+        public final void test_should_not_allow_assignment() {
+            // outcome = (float) null;
+            expect(true).to_be_true();
+            expect(topic()).to_be_null();
         }
     }
 
-    public class ForStrings extends TestCase {
+    public class ForStringsTest extends VowsTestCase {
         private String topic() {
             return null;
         }
-        public final void should_not_allow_assignment() {
-            String outcome = topic();
-            assertEquals(outcome, null);
+        public final void test_should_not_allow_assignment() {
+            expect(true).to_be_true();
+            expect(topic()).to_be_null();
         }
-    }
-
-    public final void test_integers() {
-        ForIntegers vow = new ForIntegers();
-        vow.should_not_allow_assignment();
-    }
-    public final void test_strings() {
-        ForStrings vow = new ForStrings();
-        vow.should_not_allow_assignment();
     }
 }

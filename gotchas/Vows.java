@@ -11,10 +11,6 @@ class VowsTestCase extends TestCase {
         VowExceptionAssert v = new VowExceptionAssert(outcome);
         return v;
     }
-    public boolean topic() {
-        // set handler for exception
-        return false;
-    }
     public VowBooleanAssert expect(boolean outcome) {
         VowBooleanAssert v = new VowBooleanAssert(outcome);
         return v;
@@ -50,7 +46,7 @@ class VowStringAssert extends TestCase {
 }
 
 class VowFloatAssert extends TestCase {
-    float outcome = 0.0; 
+    float outcome = 0; 
     public VowFloatAssert(float outcome) {
         this.outcome = outcome;
     }
@@ -62,6 +58,9 @@ class VowFloatAssert extends TestCase {
     }
     public void to_be_numeric() {
         assertEquals(true, true);
+    }
+    public void to_be_null() {
+        assertEquals(false, true);
     }
 }
 
