@@ -14,23 +14,27 @@ public class DataProducer {
     }
 		
     public void refresh() {
-	    String db_sql_read_Producer =
-	    	" SELECT Name, Repeatable, XpValue "
-	    	+ ", ProductionTime "
-	        + " FROM Producers ";
 	    
 	    DataItemProducer producer = null;
-	    ResultSet db_res_producer = ds.query(db_sql_read_Producer, "read", null);
+	    ResultSet db_res_producer = retrieve();
 	    try {
 		    while (db_res_producer.next()) {
 		        producer = new DataItemProducer();
 				producer.produce = db_res_producer.getString("Produce");
 				producer.repeatable = db_res_producer.getInt("Repeatable");
-				producer.xpHarvestValue = db_res_producer.getInt("XpValue");
-				producer.productionHours = db_res_producer.getInt("ProductionTime");
+				producer.xpValue = db_res_producer.getInt("XpValue");
+				producer.productionTime = db_res_producer.getInt("ProductionTime");
 	    	
 				cached.put(db_res_producer.getString("Name"), producer);
 		    }
 	    } catch (SQLException e) {}
 	}
+
+    protected ResultSet retrieve() {
+	    String db_sql_read_Producer =
+	    	" SELECT Name, Repeatable, XpValue "
+	    	+ ", ProductionTime "
+	        + " FROM Producers ";
+	    return ds.query(db_sql_read_Producer, "read", null);
+    }
 }

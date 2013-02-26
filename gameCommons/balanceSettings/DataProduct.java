@@ -11,21 +11,27 @@ public class DataProduct {
 	
 	public DataProduct(DataStore ds) {
 		this.ds = ds;
-		
-	    String db_sql_read_Product = 
-	    	" SELECT Name, CoinsValue, PremiumValue "
-	        + " FROM Products ";
-	    
+	    refresh();	
+    }
+
+    public void refresh() {
+	    ResultSet db_res = retrieve();
 	    DataItemProduct product = null;
-	    ResultSet db_res_product = ds.query(db_sql_read_Product, "read", null);
 	    try {
-		    while (db_res_product.next()) {
+		    while (db_res.next()) {
 		        product = new DataItemProduct();
-				product.karmaValue = db_res_product.getInt("CoinsValue");
-				product.goldValue = db_res_product.getInt("PremiumValue");			
+				product.karmaValue = db_res.getInt("CoinsValue");
+				product.goldValue = db_res.getInt("PremiumValue");			
 	    	
-				cached.put(db_res_product.getString("Name"), product);
+				cached.put(db_res.getString("Name"), product);
 		    }
 	    } catch (SQLException e) {}
 	}
+
+    protected ResultSet retrieve() {
+	    String db_sql = 
+	    	" SELECT Name, CoinsValue, PremiumValue "
+	        + " FROM Products ";
+	    return ds.query(db_sql, "read", null);
+    }
 }
