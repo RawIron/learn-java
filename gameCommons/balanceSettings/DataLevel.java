@@ -20,14 +20,14 @@ public class DataLevel {
     
     protected void refresh() {
 	    DataItemLevel level = null;
-	    ResultSet db_res_level = this.retrieve(0);
+	    ResultSet db_res = this.retrieve(0);
 	    try {
-		    while (db_res_level.next()) {
+		    while (db_res.next()) {
 		        level = new DataItemLevel();
-				level.xpNeeded = db_res_level.getInt("XpNeeded");
-				level.karmaReward = db_res_level.getInt("Rewarded");
+				level.xpNeeded = db_res.getInt("XpNeeded");
+				level.rewarded = db_res.getInt("Rewarded");
 		    	
-				cached.put(db_res_level.getInt("Level"), level);
+				cached.put(db_res.getInt("Level"), level);
 		    }
 	    } catch (SQLException e) {
 	    	t.trace("SQLException: " + e.getMessage());
@@ -36,7 +36,8 @@ public class DataLevel {
 		}
 	}
 	
-	public ResultSet retrieve(int in_dbgroup) {
-		return ds.query( "SELECT Level, XpNeeded, Rewarded FROM Levels ORDER BY Level", "read", null);
+	public ResultSet retrieve(int dbgroup) {
+        String db_sql = "SELECT Level, XpNeeded, Rewarded FROM Levels ORDER BY Level";
+		return ds.query(db_sql, "read", null);
 	}
 }

@@ -16,8 +16,8 @@ public class jdbcDB implements DataStore {
     protected HashMap<String,Connection> connMap = new HashMap<String,Connection>();
     protected Trace t;
 
-    public jdbcDB(Trace in_t) {
-        t = in_t;
+    public jdbcDB(Trace t) {
+        this.t = t;
     }
 
     public boolean closeAll() {
@@ -111,7 +111,7 @@ public class jdbcDB implements DataStore {
         ResultSet rs = null;
         Connection con = null;
         
-        con = (Connection) connMap.get(key);
+        con = connMap.get(key);
         if (con == null) {
             t.trace( "Can't get a connection to the database");
         }

@@ -4,6 +4,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import gameCommons.balanceSettings.DataItemAchievement;
+import gameCommons.balanceSettings.DataStore;
+
 
 public class DataAchievement {
 	protected DataStore ds;
@@ -16,12 +19,8 @@ public class DataAchievement {
     }
 
     public void refresh() {
-	    String db_sql_read = 
-	    	" SELECT Name, Threshold, AwardName "
-	        + " FROM Achievement ";
-	    
 	    DataItemAchievement achievement = null;
-	    ResultSet db_res = ds.query(db_sql_read, "read", null);
+        ResultSet db_res = retrieve(ds);
 	    try {
 		    while (db_res.next()) {
 		        achievement = new DataItemAchievement();
@@ -34,4 +33,12 @@ public class DataAchievement {
 		    }
 	    } catch (SQLException e) {}
 	}
+
+    protected ResultSet retrieve(ds) {
+	    String db_sql_read = 
+	    	" SELECT Name, Threshold, AwardName "
+	        + " FROM Achievement ";
+	    ResultSet db_res = ds.query(db_sql_read, "read", null);
+        return db_res;
+    }
 }
