@@ -36,7 +36,7 @@ public class DataLevel {
 		}
 	}
 	
-	public ResultSet retrieve(int dbgroup) {
+	protected ResultSet retrieve(int dbgroup) {
         String db_sql = "SELECT Level, XpNeeded, Rewarded FROM Levels ORDER BY Level";
 		return ds.query(db_sql, "read", null);
 	}
