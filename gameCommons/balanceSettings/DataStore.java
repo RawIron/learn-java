@@ -1,4 +1,4 @@
-package gameCommons.data;
+package gameCommons.balanceSettings;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
