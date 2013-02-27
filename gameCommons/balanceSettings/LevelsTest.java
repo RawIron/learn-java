@@ -30,11 +30,3 @@ public class LevelsTest extends TestCase {
     }
 }
 
-
-class LevelsTestMain {
-    public static void main(String[] args) {
-        LevelsTest t = new LevelsTest();
-        Levels l = t.topic();
-        System.out.println(l.with(12).xpNeeded);
-    }
-}
