@@ -15,11 +15,9 @@ LevelsTest.class:	LevelsTest.java junit.jar mockito.jar
 tests:	LevelsTest.class
 	java -classpath "$(package_home):$(package_home)/junit.jar:$(package_home)/mockito.jar" junit.textui.TestRunner gameCommons.balanceSettings.LevelsTest
 
-LevelsTestMain:	LevelsTest.class
-	java -classpath "$(package_home):$(package_home)/junit.jar:$(package_home)/mockito.jar" gameCommons.balanceSettings.LevelsTestMain
-
 testDataLevel:	DataLevelTest.class
 	java -classpath "$(package_home):$(package_home)/junit.jar:$(package_home)/mockito.jar" junit.textui.TestRunner gameCommons.balanceSettings.DataLevelTest
+
 
 clean:	
 	rm -f *.class
