@@ -14,14 +14,16 @@ public class DataLevel {
 	protected Trace t;
 	protected HashMap<Integer,DataItemLevel> cached = new HashMap<Integer,DataItemLevel>();
 
+    public DataLevel() {
+        // no levels available
+    }
+	public DataLevel(DataItemLevel level, Trace t) {
+        cache(level);
+    }
 	public DataLevel(DataStore ds, Trace t) {
 		this.ds = ds;
 		this.t = t;
         refresh();
-    }
-
-	public DataLevel(DataItemLevel level, Trace t) {
-        cache(level);
     }
 
     public DataItemLevel read(int key) {
@@ -50,9 +52,10 @@ public class DataLevel {
     protected void cache(DataItemLevel level) {
         cached.put(level.level, level);
     }
-	
+
 	protected ResultSet retrieve(int dbgroup) {
         String db_sql = "SELECT Level, XpNeeded, Rewarded FROM Levels ORDER BY Level";
 		return ds.query(db_sql, "read", null);
 	}
 }
+
