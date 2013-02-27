@@ -11,7 +11,7 @@ class Producer {
 }
 
 class Product {
-    String name;
+    public String name;
     public Product(String name) {
         this.name = name;
     }
@@ -37,5 +37,24 @@ public class MockTest extends TestCase {
     }
     public final void test_should_collected_iron() {
         assertEquals(topic().collect().is(), "Iron");
+    }
+}
+
+public class ProductTest extends TestCase {
+    public ProductTest() {
+        super();
+    }
+
+    protected Product topic() {
+        Product mocked = mock(Product.class);
+        when(mocked.name).thenReturn("Iron");
+        return mocked;
+    }
+
+    public final void test_should_have_product() {
+        assertNotNull(topic());
+    }
+    public final void test_should_collected_iron() {
+        assertEquals(topic().name, "Iron");
     }
 }
