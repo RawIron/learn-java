@@ -9,19 +9,14 @@ import gameCommons.balanceSettings.DataItemLevel;
 
 
 class MockedLevels extends Levels {
-    public MockedLevels() {
-        super();
-    }
     protected DataLevel create() {
-        DataLevel mock = mock(DataLevel.class);
-        verify(mock).read(12);
-        when(mock.read(12)).thenReturn(new DataItemLevel(12, 100, 10));
-        return mock;
+        DataLevel mocked = mock(DataLevel.class);
+        when(mocked.read(12)).thenReturn(new DataItemLevel(12, 100, 10));
+        return mocked;
     }
 }
 
 public class LevelsTest extends TestCase {
-
     public LevelsTest() {
         super();
     }
