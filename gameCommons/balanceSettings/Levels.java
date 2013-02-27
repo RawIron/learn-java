@@ -19,7 +19,7 @@ public class Levels {
     }
 
     public DataItemLevel with(int key) {
-        return settings.cached.get(key);
+        return settings.read(key);
     }
 
     protected DataLevel create() {
