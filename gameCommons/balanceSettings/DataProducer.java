@@ -4,6 +4,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import gameCommons.system.Trace;
+import gameCommons.balanceSettings.DataStore;
+import gameCommons.balanceSettings.DataItemProducer;
+
 
 public class DataProducer {
 	protected DataStore ds;
@@ -19,7 +23,11 @@ public class DataProducer {
 		this.ds = ds;
         this.t = t;
     }
-		
+
+    public DataItemProducer read(String key) {
+        return cached.get(key);
+    }
+
     public void refresh() {
 	    DataItemProducer producer = null;
 	    ResultSet db_res_producer = retrieve();
@@ -28,7 +36,6 @@ public class DataProducer {
 		        producer = new DataItemProducer();
 				producer.name = db_res_producer.getString("Name");
 				producer.produce = db_res_producer.getString("Produce");
-				producer.repeatable = db_res_producer.getInt("Repeatable");
 				producer.xpValue = db_res_producer.getInt("XpValue");
 				producer.productionTime = db_res_producer.getInt("ProductionTime");
 	    	
@@ -37,8 +44,8 @@ public class DataProducer {
 	    } catch (SQLException e) {}
 	}
 
-    protected void cache(DateItemProducer producer) {
-        cached.put(producer.name), producer);
+    protected void cache(DataItemProducer producer) {
+        cached.put(producer.name, producer);
     }
 
     protected ResultSet retrieve() {

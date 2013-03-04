@@ -17,7 +17,7 @@ public class Producers {
         this.settings = create();
     }
 
-    public DataItemProducer with(int key) {
+    public DataItemProducer with(String key) {
         return settings.read(key);
     }
 

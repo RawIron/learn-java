@@ -7,6 +7,9 @@ mockito.jar:
 
 
 
+DataItemProducer.class:	DataItemProducer.java
+	javac -classpath "$(package_home)" DataItemProducer.java
+
 Levels.class:	Levels.java
 	javac -classpath "$(package_home)" Levels.java
 
