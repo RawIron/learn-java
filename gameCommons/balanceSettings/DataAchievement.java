@@ -25,6 +25,10 @@ public class DataAchievement {
         refresh();
     }
 
+    public DataItemAchievement read(String key) {
+        return cached.get(key);
+    }
+
     public void refresh() {
 	    DataItemAchievement achievement = null;
         ResultSet db_res = retrieve(ds);
@@ -42,10 +46,10 @@ public class DataAchievement {
     
     protected void cache(DataItemAchievement achievement) {
         cached.put(achievement.name, achievement);
-        cachedByAward.put(achievement.awardName"), achievement);
+        cachedByAward.put(achievement.awardName, achievement);
     }
 
-    protected ResultSet retrieve(ds) {
+    protected ResultSet retrieve(DataStore ds) {
 	    String db_sql_read = 
 	    	" SELECT Name, Threshold, AwardName "
 	        + " FROM Achievement ";

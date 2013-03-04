@@ -5,6 +5,7 @@ public class DataItemAchievement {
 	public String awardName;
 	public int threshold;
 
+    public DataItemAchievement() {}
     public DataItemAchievement(String name, String awardName, int threshold) {
         this.name = name;
         this.awardName = awardName;
