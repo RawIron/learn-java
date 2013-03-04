@@ -17,7 +17,7 @@ public class Products {
         this.settings = create();
     }
 
-    public DataItemProduct with(int key) {
+    public DataItemProduct with(String key) {
         return settings.read(key);
     }
 
