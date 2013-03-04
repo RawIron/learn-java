@@ -19,8 +19,8 @@ Achievements.class:	Achievements.java
 Producers.class:	Producers.java
 	javac -classpath "$(package_home)" Producers.java
 
-Product.class:	Product.java
-	javac -classpath "$(package_home)" Product.java
+Products.class:	Products.java
+	javac -classpath "$(package_home)" Products.java
 
 
 

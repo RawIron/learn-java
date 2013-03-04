@@ -25,6 +25,10 @@ public class DataProduct {
 	    refresh();	
     }
 
+    public DataItemProduct read(String key) {
+        return cached.get(key);
+    }
+
     public void refresh() {
 	    ResultSet db_res = retrieve();
 	    DataItemProduct product = null;
@@ -40,8 +44,8 @@ public class DataProduct {
 	    } catch (SQLException e) {}
 	}
 
-    protected cache(DataItemProduct product) {
-        cached.put(product.name), product);
+    protected void cache(DataItemProduct product) {
+        cached.put(product.name, product);
     }
 
     protected ResultSet retrieve() {
