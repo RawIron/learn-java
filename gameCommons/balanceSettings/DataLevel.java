@@ -29,7 +29,7 @@ public class DataLevel {
     public DataItemLevel read(int key) {
         return cached.get(key);
     }
-    
+ 
     protected void refresh() {
 	    DataItemLevel level = null;
 	    ResultSet db_res = this.retrieve(0);
@@ -54,7 +54,8 @@ public class DataLevel {
     }
 
 	protected ResultSet retrieve(int dbgroup) {
-        String db_sql = "SELECT Level, XpNeeded, Rewarded FROM Levels ORDER BY Level";
+        String db_sql = "SELECT Level, XpNeeded, Rewarded "
+                    + " FROM Levels ORDER BY Level";
 		return ds.query(db_sql, "read", null);
 	}
 }

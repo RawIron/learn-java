@@ -25,7 +25,7 @@ public class LevelsTest extends TestCase {
         return new MockedLevels();
     }
 
-    public final void test_should_need_100_xp() {
+    public final void test_level_12_should_need_100_xp() {
         assertEquals(topic().with(12).xpNeeded, 100);
     }
 }
