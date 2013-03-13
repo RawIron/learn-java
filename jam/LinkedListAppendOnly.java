@@ -31,12 +31,22 @@ public class LinkedListAppendOnly<E> {
 		return (current.next != null);
 	}
 	public E next() {
-		E value = current.next.value;
 		current = current.next;
-		return value;
+		return current.value;
 	}
 	public boolean isEmpty() {
 		return (head.next == null);
 	}
 }
 
+class LinkedListWithInsert<E> extends LinkedListAppendOnly<E> {
+	
+	public void insert(E value) {
+		LinkedListElement<E> element = new LinkedListElement<E>(value);
+		LinkedListElement<E> keep = null;
+		keep = current.next;
+		current.next = element;
+		element.next = keep;
+		current = element;
+	}
+}
