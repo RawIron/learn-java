@@ -6,21 +6,21 @@ class Node {
     protected int writeTo;
 
     public synchronized void give(String message) {
-            while(writeTo - readFrom == 3) {
-                try { wait(); } catch (Exception e) {}                
-            }
-            messages[writeTo&3] = message;
-            ++writeTo;
-            notifyAll();
+        while(writeTo - readFrom == 3) {
+            try { wait(); } catch (Exception e) {}                
+        }
+        messages[writeTo&3] = message;
+        ++writeTo;
+        notifyAll();
     }
     public synchronized String pick() {
         String message;
-            while(writeTo - readFrom == 0) {
-                try { wait(); } catch (Exception e) {}
-            }
-            message = messages[readFrom&3];
-            ++readFrom;
-            notifyAll();
+        while(writeTo - readFrom == 0) {
+            try { wait(); } catch (Exception e) {}
+        }
+        message = messages[readFrom&3];
+        ++readFrom;
+        notifyAll();
         return message;
     }    
 }
@@ -47,11 +47,12 @@ class Player extends Node implements Runnable {
         p.give("ping");
     }
     protected void ping() {
-        System.out.println(name + " pong");
         if (g.nextInt(2) == 1) {
             r.give("missed");
+            System.out.println(name + " missed");
         } else {
             p.give("pong");
+            System.out.println(name + " pong");
         }
     }
     protected void pong() {
@@ -85,20 +86,32 @@ class Referee extends Node implements Runnable {
     private Player p2;
     private boolean isRunning = true;
     private int readyCounter = 0;
+    private Random g;
+    
+    public Referee() {
+        this.g = new Random();
+    }
     
     public void playWith(Player p1, Player p2) {
         this.p1 = p1;
         this.p2 = p2;
     }
     
+    protected void serve() {
+        if (g.nextInt(2) == 1) {
+            p1.give("serve");            
+        } else {
+            p2.give("serve");            
+        }
+    }
     protected void ready() {
         ++readyCounter;
         if (readyCounter == 2) {
-            p1.give("serve");
+            serve();
         }
     }
     protected void missed() {
-        p1.give("serve");        
+        serve();        
     }
     protected void matchOver() {
         isRunning = false;
