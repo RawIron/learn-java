@@ -28,7 +28,20 @@ public class LinkedListAppendOnlyTest {
 		assertFalse(list.isEmpty());
 		assertTrue(list.hasNext());
 		retrievedDate = list.next();
-		assertEquals(aDate, retrievedDate);
+		assertSame(aDate, retrievedDate);
 	}
-
+	
+	@Test
+	public void test_insert() {
+		LinkedListWithInsert<Date> list = new LinkedListWithInsert<Date>();
+		Date aDate = new Date();
+		Date retrievedDate = null;
+		
+		list.insert(aDate);
+		assertFalse(list.isEmpty());
+		assertFalse(list.hasNext());
+		list.rewind();
+		retrievedDate = list.next();
+		assertSame(aDate, retrievedDate);		
+	}
 }
