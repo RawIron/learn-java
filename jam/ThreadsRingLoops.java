@@ -13,7 +13,7 @@ class MessageBuffer implements RingConnector {
 	protected int writeTo = 0;
 
 	public synchronized void give(String message) {
-		while(writeTo - readFrom == 3) {
+		while(writeTo - readFrom == 4) {
 			try { wait(); } catch (Exception e) {}				
 		}
 		messages[writeTo&3] = message;
@@ -40,12 +40,10 @@ class RingCoordinator {
 class RingNode implements Runnable, RingConnector {
 	private RingConnector nic;
 	private RingNode neighbor;
-	private RingNode coordinator;
 	private boolean isStopped = false;
 	private String name;
 	private String id;
 	private Random g;
-	private int served = 0;
 	private int closedLoops = 0;
 	
 	public RingNode(String name, RingConnector nic) {
@@ -60,12 +58,8 @@ class RingNode implements Runnable, RingConnector {
 	}
 	
 	protected void serve() {
-		if (served > 10) {
-			return;
-		}
 		String message = id;
 		System.out.println("send " + name + " " + message);
-		++served;
 		neighbor.give(message);
 	}
 	protected void forward(String message) {
@@ -85,10 +79,24 @@ class RingNode implements Runnable, RingConnector {
 		isStopped = true;
 	}
 	
-	public void play() {
-		String action;	
-		while(!isStopped) {
+	protected void deadlock() {
+		for (int served=0; served <= 10; ++served) {
 			serve();
+		}		
+	}
+	protected void async() {
+		(new Thread() {
+			public void run() {
+				for (int served=0; served <= 10; ++served) {
+					serve();
+				}
+			}
+		}).start();		
+	}
+	public void play() {
+		async();
+		String action;
+		while(!isStopped) {
 			action = pick();
 			if (action.startsWith(id)) { loopClosed(); }
 			else if (action.equals("matchover")) { matchOver(); }
@@ -99,6 +107,7 @@ class RingNode implements Runnable, RingConnector {
 	@Override
 	public void run() {
 		play();
+		System.out.println(name + " worked " + closedLoops);
 	}
 	@Override
 	public void give(String message) {
@@ -117,8 +126,9 @@ public class ThreadsRingLoops {
 	protected static final String[] NAMES = {"Iron", "Bat"};
 	
 	public static void main(String[] args) {
-		RingConnector nic = new MessageBuffer();
+		RingConnector nic = null;
 		for (int i=0; i<NNODES; ++i) {
+			nic = new MessageBuffer();
 			ring[i] = new RingNode(NAMES[i], nic);
 		}
 		for (int i=0; i<NNODES; ++i) {
