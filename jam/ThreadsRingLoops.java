@@ -36,13 +36,12 @@ class MessageBuffer implements RingConnector {
 
 class RingNode implements Runnable, RingConnector {
 	private RingConnector nic;
-	private RingNode neighbor;
-	private boolean isStopped = false;
-	private String name;
-	private String id;
+	protected RingNode neighbor;
+	protected boolean isStopped = false;
+	protected String name;
+	protected String id;
 	private Random g;
-	private int closedLoops = 0;
-	private boolean debug = false;
+	protected boolean debug = false;
 	
 	public RingNode(String name, RingConnector nic) {
 		this.nic = nic;
@@ -58,13 +57,50 @@ class RingNode implements Runnable, RingConnector {
 		this.debug = true;
 	}
 	
+	protected void forward(String message) {
+		if (debug) { System.out.println("forward " + name + " " + message); }
+		neighbor.in(message);
+	}
+	protected void matchOver() {
+		if (debug) { System.out.println(name + " done"); }
+		neighbor.in("matchover");
+		isStopped = true;
+	}
+	
+	public void play() {
+		String action;
+		while(!isStopped) {
+			action = out();
+			if (action.equals("matchover")) { matchOver(); }
+			else { forward(action); }
+		}
+	}
+	
+	@Override
+	public void run() {
+		try { Thread.sleep(2); } catch (Exception e) {}
+		play();
+	}
+	@Override
+	public void in(String message) {
+		nic.in(message);
+	}
+	@Override
+	public String out() {
+		return nic.out();
+	}
+}
+
+class RingNodeActive extends RingNode {
+	private int closedLoops = 0;
+	
+	public RingNodeActive(String name, RingConnector nic) {
+		super(name, nic);
+	}
+	
 	protected void serve() {
 		String message = id;
 		if (debug) { System.out.println("send " + message); }
-		neighbor.in(message);
-	}
-	protected void forward(String message) {
-		if (debug) { System.out.println("forward " + name + " " + message); }
 		neighbor.in(message);
 	}
 	protected void loopClosed() {
@@ -73,13 +109,7 @@ class RingNode implements Runnable, RingConnector {
 		if (closedLoops > 10) {
 			matchOver();
 		}
-	}
-	protected void matchOver() {
-		if (debug) { System.out.println(name + " done"); }
-		neighbor.in("matchover");
-		isStopped = true;
-	}
-	
+	}	
 	protected void deadlock() {
 		for (int served=0; served <= 10; ++served) {
 			serve();
@@ -94,6 +124,8 @@ class RingNode implements Runnable, RingConnector {
 			}
 		}).start();		
 	}
+	
+	@Override
 	public void play() {
 		//async();
 		String action;
@@ -104,24 +136,8 @@ class RingNode implements Runnable, RingConnector {
 			else if (action.equals("matchover")) { matchOver(); }
 			else { forward(action); }
 		}
-	}
-	
-	@Override
-	public void run() {
-		try { Thread.sleep(2); } catch (Exception e) {}
-		play();
-		System.out.println(name + " worked " + closedLoops);
-	}
-	@Override
-	public void in(String message) {
-		nic.in(message);
-	}
-	@Override
-	public String out() {
-		return nic.out();
-	}
+	}	
 }
-
 
 public class ThreadsRingLoops {
 	protected static final int NNODES = 4;
@@ -129,10 +145,17 @@ public class ThreadsRingLoops {
 	protected static final String[] NAMES = {"Iron", "Bat", "Thor", "Marvel"};
 	
 	public static void main(String[] args) {
+		int isActive = new Random().nextInt(NNODES);
+		System.out.println("active Node " + isActive);
 		RingConnector nic = null;
+		
 		for (int i=0; i<NNODES; ++i) {
 			nic = new MessageBuffer();
-			ring[i] = new RingNode(NAMES[i], nic);
+			if (isActive == i) {
+				ring[i] = new RingNodeActive(NAMES[i], nic);	
+			} else {
+				ring[i] = new RingNode(NAMES[i], nic);
+			}
 		}
 		for (int i=0; i<NNODES; ++i) {
 			System.out.println("neighbors " + i + " " + ((i+1)&(NNODES-1)));
