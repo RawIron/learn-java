@@ -8,15 +8,16 @@ interface RingConnector {
 
 
 class MessageBuffer implements RingConnector {
-	protected String[] messages = new String[4];
+	protected static final int BUFFERSIZE = 4;
+	protected String[] messages = new String[BUFFERSIZE];
 	protected int readFrom = 0;
 	protected int writeTo = 0;
 
 	public synchronized void in(String message) {
-		while(writeTo - readFrom == 4) {
+		while(writeTo - readFrom == BUFFERSIZE) {
 			try { wait(); } catch (Exception e) {}				
 		}
-		messages[writeTo&3] = message;
+		messages[writeTo&(BUFFERSIZE-1)] = message;
 		++writeTo;
 		notifyAll();
 	}
@@ -25,11 +26,11 @@ class MessageBuffer implements RingConnector {
 		while(writeTo - readFrom == 0) {
 			try { wait(); } catch (Exception e) {}
 		}
-		message = messages[readFrom&3];
+		message = messages[readFrom&(BUFFERSIZE-1)];
 		++readFrom;
 		notifyAll();
 		return message;
-	}	
+	}
 }
 
 
@@ -41,6 +42,7 @@ class RingNode implements Runnable, RingConnector {
 	private String id;
 	private Random g;
 	private int closedLoops = 0;
+	private boolean debug = false;
 	
 	public RingNode(String name, RingConnector nic) {
 		this.nic = nic;
@@ -52,25 +54,28 @@ class RingNode implements Runnable, RingConnector {
 	public void neighborIs(RingNode node) {
 		this.neighbor = node;
 	}
+	public void debugOn() {
+		this.debug = true;
+	}
 	
 	protected void serve() {
 		String message = id;
-		//System.out.println("send " + name + " " + message);
+		if (debug) { System.out.println("send " + message); }
 		neighbor.in(message);
 	}
 	protected void forward(String message) {
-		//System.out.println("forward " + name + " " + message);
+		if (debug) { System.out.println("forward " + name + " " + message); }
 		neighbor.in(message);
 	}
 	protected void loopClosed() {
-		//System.out.println(name + " closed");
+		if (debug) { System.out.println(name + " closed"); }
 		++closedLoops;
 		if (closedLoops > 10) {
 			matchOver();
 		}
 	}
 	protected void matchOver() {
-		System.out.println(name + " done");
+		if (debug) { System.out.println(name + " done"); }
 		neighbor.in("matchover");
 		isStopped = true;
 	}
@@ -90,9 +95,10 @@ class RingNode implements Runnable, RingConnector {
 		}).start();		
 	}
 	public void play() {
-		async();
+		//async();
 		String action;
 		while(!isStopped) {
+			serve();
 			action = out();
 			if (action.startsWith(id)) { loopClosed(); }
 			else if (action.equals("matchover")) { matchOver(); }
@@ -102,6 +108,7 @@ class RingNode implements Runnable, RingConnector {
 	
 	@Override
 	public void run() {
+		try { Thread.sleep(2); } catch (Exception e) {}
 		play();
 		System.out.println(name + " worked " + closedLoops);
 	}
@@ -130,6 +137,7 @@ public class ThreadsRingLoops {
 		for (int i=0; i<NNODES; ++i) {
 			System.out.println("neighbors " + i + " " + ((i+1)&(NNODES-1)));
 			ring[i].neighborIs(ring[(i+1)&(NNODES-1)]);
+			if (i == 3) { ring[i].debugOn(); }
 			new Thread(ring[i]).start();
 		}
 	}
