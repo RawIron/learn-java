@@ -7,33 +7,55 @@ interface Sorter {
 public class InsertSortLotsOfMemory implements Sorter {
 	private int[] sortedGoesHere = null;
 	private int[] takeFromHere = null;
+	boolean inserted = false;
+	boolean swapped = false;
 
+	private void insert(int inOrder, int outOfOrder) {
+		sortedGoesHere[inOrder+1] = sortedGoesHere[inOrder];
+		sortedGoesHere[inOrder] = takeFromHere[outOfOrder];
+		inserted = true;		
+	}
+	private void copy(int nextIteration, int notYet) {
+		sortedGoesHere[nextIteration] = takeFromHere[notYet];		
+	}
+	private boolean skipInserted(int copyTo, int current) {
+		if (copyTo == current && (inserted) && (!swapped)) {
+			return true;
+		}
+		return false;
+	}
+	private boolean swapFirstTwo(int k, int i) {
+		return ((k == 0) && (i == 1) && sortedGoesHere[k] > takeFromHere[i]);
+	}
+	private boolean insertInOrder(int k, int i) {
+		return ((k<i) && sortedGoesHere[k] > takeFromHere[i] && (!inserted));
+	}
+	
 	public int[] sort(int[] unsorted) {
 		this.takeFromHere = unsorted;
 		sortedGoesHere = new int[takeFromHere.length];
 		sortedGoesHere = takeFromHere.clone();	
 
 		for (int i=1; i<takeFromHere.length; ++i) {
-			boolean inserted = false;
-			boolean swapped = false;
+			inserted = false;
+			swapped = false;
 			int k, source;
 
 			for (k=0, source=0; k<takeFromHere.length; ++k, ++source) {
-				if ((k<i) && sortedGoesHere[k] > takeFromHere[i] && (!inserted)) {
-					sortedGoesHere[k+1] = sortedGoesHere[k];
-					sortedGoesHere[k] = takeFromHere[i];
-					inserted = true;
-					if ((k == 0) && (i == 1)) {
-						swapped = true;
-						++source;
-					}
+				if (swapFirstTwo(k,i)) {
+					++source;
+					swapped = true;
+					insert(k,i);
 					++k;
-					continue;
+				}
+				else if (insertInOrder(k,i)) {
+					insert(k,i);
+					++k;
 				} else {
-					if (source == i && (inserted) && (!swapped)) {
+					if (skipInserted(source, i)) {
 						++source;
 					}
-					sortedGoesHere[k] = takeFromHere[source];
+					copy(k,source);
 				}
 			}
 			takeFromHere = sortedGoesHere.clone();
