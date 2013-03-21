@@ -75,17 +75,21 @@ abstract class RingNode implements Runnable, RingConnector {
 }
 
 class RingNodePassive extends RingNode {
-
+	private int forwardCounter = 0;
+	private int matchoverCounter = 0;
+	
 	public RingNodePassive(String name, RingConnector nic) {
 		super(name, nic);
 	}
 	
 	protected void forward(String message) {
 		if (debug) { System.out.println("forward " + name + " " + message); }
+		++forwardCounter;
 		neighbor.in(message);
 	}
 	protected void matchOver() {
 		if (debug) { System.out.println(name + " done"); }
+		++matchoverCounter;
 		neighbor.in("matchover");
 		isStopped = true;
 	}	
@@ -97,11 +101,14 @@ class RingNodePassive extends RingNode {
 			if (action.equals("matchover")) { matchOver(); }
 			else { forward(action); }
 		}
+		System.out.println(name + " forwarded " + forwardCounter);
+		System.out.println(name + " matchover " + matchoverCounter);
 	}	
 }
 
 class RingNodeActive extends RingNodePassive {
 	private int closedLoops = 0;
+	private int servedCounter = 0;
 	
 	public RingNodeActive(String name, RingConnector nic) {
 		super(name, nic);
@@ -110,6 +117,7 @@ class RingNodeActive extends RingNodePassive {
 	protected void serve() {
 		String message = id;
 		if (debug) { System.out.println("send " + message); }
+		++servedCounter;
 		neighbor.in(message);
 	}
 	protected void loopClosed() {
@@ -136,15 +144,16 @@ class RingNodeActive extends RingNodePassive {
 	
 	@Override
 	public void play() {
-		//async();
+		async();
 		String action;
 		while(!isStopped) {
-			serve();
 			action = out();
 			if (action.startsWith(id)) { loopClosed(); }
 			else if (action.equals("matchover")) { matchOver(); }
 			else { forward(action); }
 		}
+		System.out.println(name + " served " + servedCounter);
+		System.out.println(name + " closed " + closedLoops);
 	}	
 }
 
@@ -161,16 +170,17 @@ public class ThreadsRingLoops {
 		
 		for (int i=0; i<NNODES; ++i) {
 			nic = new MessageBuffer();
-			if (isActive == i) {
+			if (isActive == i || isActive == ((i+1)&(NNODES-1))) {
 				ring[i] = new RingNodeActive(NAMES[i], nic);	
 			} else {
 				ring[i] = new RingNodePassive(NAMES[i], nic);
 			}
 		}
+		
 		for (int i=0; i<NNODES; ++i) {
 			System.out.println("neighbors " + i + " " + ((i+1)&(NNODES-1)));
 			ring[i].neighborIs(ring[(i+1)&(NNODES-1)]);
-			if (i == 3) { ring[i].debugOn(); }
+			//if (i == 3) { ring[i].debugOn(); }
 			new Thread(ring[i]).start();
 		}
 	}
