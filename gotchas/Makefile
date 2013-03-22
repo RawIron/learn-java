@@ -18,6 +18,9 @@ Product.class:	Producer.java
 ATest.class:	ATest.java junit.jar
 	javac -classpath "$(package_home)/junit.jar:$(package_home)" ATest.java
 
+FunctionTest.class:	FunctionTest.java junit.jar
+	javac -classpath "$(package_home)/junit.jar:$(package_home)" FunctionTest.java
+
 ByteArrayTest.class:	ByteArrayTest.java Vows.class junit.jar
 	javac -classpath "$(package_home)/junit.jar:$(package_home)" ByteArrayTest.java
 
@@ -40,6 +43,8 @@ tests:	ATest.class ByteArrayTest.class ProducerTest.class ProducerFactoryMethodT
 testProducerFactory: ProducerFactoryMethodTest.class
 	java -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" junit.textui.TestRunner gotchas.ProducerFactoryMethodTest
 
+FunctionTest: FunctionTest.class
+	java -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" junit.textui.TestRunner gotchas.FunctionTest
 
 clean:	
 	rm -rf *.class
