@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 
 class Function {
     public int state = 2;
+
     public void giveInteger(Integer value) {
         value += 4;
     }
@@ -25,15 +26,15 @@ public class FunctionTest extends TestCase {
     }
 
     public final void test_passInteger() {
-        Function f = topic();
         Integer value = new Integer(2);
+        Function f = topic();
         f.giveInteger(value);
         assertEquals((int)value,2);
     }
 
     public final void test_passIntArray() {
-        Function f = topic();
         int[] value = {1, 2};
+        Function f = topic();
         f.giveArray(value);
         assertEquals(value[1], 4);
     }
