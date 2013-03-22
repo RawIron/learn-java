@@ -8,6 +8,9 @@ class Function {
     public void giveInteger(Integer value) {
         value += 4;
     }
+    public void giveArray(int[] value) {
+        value[1] = 4;
+    }
 }
 
 public class FunctionTest extends TestCase {
@@ -25,5 +28,12 @@ public class FunctionTest extends TestCase {
         Integer value = new Integer(2);
         f.giveInteger(value);
         assertEquals((int)value,2);
+    }
+
+    public final void test_passIntArray() {
+        Function f = topic();
+        int[] value = {1, 2};
+        f.giveArray(value);
+        assertEquals(value[1], 4);
     }
 }
