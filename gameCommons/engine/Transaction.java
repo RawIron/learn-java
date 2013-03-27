@@ -11,6 +11,7 @@ package gameCommons.engine;
 interface Accountable {
     public void add(int quantity);
     public void sub(int quantity);
+    public int balance();
 }
 
 
@@ -23,6 +24,9 @@ class CoinsWallet implements Accountable {
     public void sub(int quantity) {
         balance -= quantity;
     }
+    public int balance() {
+        return balance;
+    }
 }
 
 class BuildingInventory implements Accountable {
@@ -33,6 +37,9 @@ class BuildingInventory implements Accountable {
     }
     public void sub(int quantity) {
         balance -= quantity;
+    }
+    public int balance() {
+        return balance;
     }
 }
 
