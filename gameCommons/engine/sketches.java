@@ -37,6 +37,17 @@ inventory :=
 }
 
 
+class Transaction {
+    public Transaction() {}
+
+    public Transaction give() {
+    }
+    public Transaction take() {
+    }
+    public void commit() {
+    }
+}
+
 class EventEngine {
 counters := store current state
 sequencers := register at counters
