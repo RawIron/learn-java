@@ -57,4 +57,16 @@ public class TransactionTest extends TestCase {
         assertEquals(coins.balance(), -100);
     }
 
+    public final void test_transactionTakeCoinsTakeCoins() {
+        Accountable coins = new CoinsWallet();
+        Transaction t = new Transaction();
+        assertNull(t.take(100, coins).take(50, coins));
+    }
+
+    public final void test_transactionGiveCoinsGiveCoins() {
+        Accountable coins = new CoinsWallet();
+        Transaction t = new Transaction();
+        assertNull(t.give(100, coins).give(50, coins));
+    }
+
 }
