@@ -46,22 +46,35 @@ class BuildingInventory implements Accountable {
 public class Transaction {
     private Accountable lhs = null, rhs = null;
     private int added = 0, subtracted = 0;
+    private boolean giveWasCalled = false;
+    private boolean takeWasCalled = false;
 
     public Transaction() {}
 
     public Transaction give(int added, Accountable lhs) {
+        if (giveWasCalled) {
+            return null;
+        }
         this.added = added;
         this.lhs = lhs;
+        giveWasCalled = true;
         return this;
     }
     public Transaction take(int subtracted, Accountable rhs) {
+        if (takeWasCalled) {
+            return null;
+        }
         this.subtracted = subtracted;
         this.rhs = rhs;
+        takeWasCalled = true;
         return this;
     }
     public void commit() {
         if (lhs != null) { lhs.add(added); }
         if (rhs != null) { rhs.sub(subtracted); }
+        lhs = rhs = null;
+        added = subtracted = 0;
+        giveWasCalled = takeWasCalled = false;
         return;
     }
 }
