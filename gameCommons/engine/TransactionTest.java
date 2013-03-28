@@ -81,4 +81,17 @@ public class TransactionTest extends TestCase {
         assertEquals(building.balance(), 3);
     }
 
+    public final void test_twoTransactionsGiveBuildingRollbackTakeCoinsCommit() {
+        Accountable coins = new CoinsWallet();
+        Accountable building = new BuildingInventory();
+        Transaction t = new Transaction();
+        t.give(1, building);
+        t.rollback();
+        assertEquals(coins.balance(), 0);
+        assertEquals(building.balance(), 0);
+        t.take(200, coins).commit();
+        assertEquals(coins.balance(), -200);
+        assertEquals(building.balance(), 0);
+    }
+
 }

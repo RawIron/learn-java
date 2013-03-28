@@ -72,10 +72,16 @@ public class Transaction {
     public void commit() {
         if (lhs != null) { lhs.add(added); }
         if (rhs != null) { rhs.sub(subtracted); }
+        reset();
+    }
+    public void rollback() {
+        reset();
+    }
+
+    private void reset() {
         lhs = rhs = null;
         added = subtracted = 0;
         giveWasCalled = takeWasCalled = false;
-        return;
     }
 }
 
