@@ -1,6 +1,7 @@
 /*
-    place(building).at(2,3)
-    at(2,3).place(building)
+    board.place(building).at(2,3)
+    board.at(2,3).place(building)
+    board.move(building).from(2,3).to(4,5)
 
     move.is(place(building).at(2,3))
     make(move)
@@ -45,4 +46,5 @@ class Board {
         return this;
     }
 }
+
 
