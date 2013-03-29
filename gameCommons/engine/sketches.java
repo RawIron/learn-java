@@ -27,16 +27,6 @@ class Sketches {
 }
 
 
-class Board {
-board :=
-inventory :=
-
-    move.is(place(building).at(2,3))
-    make(move)
-    mover.make(move)
-}
-
-
 class EventEngine {
 counters := store current state
 sequencers := register at counters
