@@ -7,10 +7,22 @@
     mover.make(move)
  */
 
+package gameCommons.engine;
 
-public interface Boardable {
+import java.util.LinkedList;
+
+interface Boardable {
     public int heigthIs();
     public int widthIs();
+}
+
+class Building implements Boardable {
+    public int heigthIs() {
+        return 4;
+    }
+    public int widthIs() {
+        return 4;
+    }
 }
 
 
@@ -22,7 +34,7 @@ class Move {
 
 
 class BoardCommand {
-    private LinkedList<String> words = new LinkedList<String>;
+    protected LinkedList<String> words = new LinkedList<String>();
     public void init() {}
 
     public BoardCommand() {
@@ -31,7 +43,7 @@ class BoardCommand {
     public boolean isComplete() {
         return (words.isEmpty());
     }
-    public void found() {
+    public void found(String word) {
         if (words.contains(word)) {
             words.remove(word);
         }
@@ -41,14 +53,15 @@ class BoardCommand {
 class BoardPlaceCommand extends BoardCommand {
     @Override
     public void init() {
-        words.put("place", false);
-        words.put("at", false);
+        words.add("place");
+        words.add("at");
     }
 }
 
 
 
 public class Board {
+    public static final Boardable empty = null;
     private Boardable[][] board;
     int xMax = 0, yMax = 0;
     int x = 0, y = 0;
@@ -77,6 +90,9 @@ public class Board {
     public Board place(Boardable item) {
         this.item = item;
         return this;
+    }
+    public Boardable on(int x, int y) {
+        return board[x][y];
     }
 
     public Board at(int x, int y) {
