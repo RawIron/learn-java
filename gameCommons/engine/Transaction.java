@@ -1,8 +1,8 @@
 /*
     buy(inventory, coins)
-    transaction.give(inventory).take(coins)
+    transaction.give(inventory).take(coins).commit()
     sell(inventory, coins)
-    transaction.give(coins).take(inventory)
+    transaction.give(coins).take(inventory).commit()
  */
 
 package gameCommons.engine;
