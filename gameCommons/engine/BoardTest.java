@@ -10,6 +10,6 @@ public class BoardTest extends TestCase {
         Boardable building = new Building();
         Board board = new Board();
         board.place(building);
-        assertEquals(board.at(0,0), Board.empty);
+        assertEquals(board.on(0,0), Board.empty);
     }
 }
