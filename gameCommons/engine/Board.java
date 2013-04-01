@@ -98,6 +98,7 @@ public class Board {
     public Board at(int x, int y) {
         this.x = x;
         this.y = y;
+        board[x][y] = item;
         return this;
     }
     public Board from(int x, int y) {
