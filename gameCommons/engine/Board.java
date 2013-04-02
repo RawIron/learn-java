@@ -36,9 +36,9 @@ class Move {
 }
 
 
-class BoardCommand {
+abstract class BoardCommand {
     protected LinkedList<String> words = new LinkedList<String>();
-    public void init() {}
+    public abstract void init();
 
     public BoardCommand() {
         init();
@@ -59,6 +59,9 @@ class BoardPlaceCommand extends BoardCommand {
         words.add("place");
         words.add("at");
     }
+    public void run(Board board, Boardable piece, Point at) {
+        board.place(piece, at);
+    }
 }
 
 class BoardRemoveCommand extends BoardCommand {
@@ -66,6 +69,9 @@ class BoardRemoveCommand extends BoardCommand {
     public void init() {
         words.add("remove");
         words.add("at");
+    }
+    public void run(Board board, Boardable piece, Point at) {
+        board.remove(piece, at);
     }
 }
 
@@ -75,6 +81,9 @@ class BoardMoveCommand extends BoardCommand {
         words.add("move");
         words.add("from");
         words.add("to");
+    }
+    public void run(Board board, Boardable piece, Point from, Point to) {
+        board.move(piece, from, to);
     }
 }
 
@@ -89,14 +98,64 @@ class Point {
 }
 
 
+class DottedBoard {
+    int x = 0, y = 0;
+    Boardable piece = null;
+    BoardCommand command = null;
+
+    public Board remove(Boardable piece) {
+        this.piece = piece;
+        this.command = new BoardRemoveCommand();
+        return this;
+    }
+
+    public Board move(Boardable piece) {
+        this.piece = piece;
+        this.command = new BoardMoveCommand();
+        return this;
+    }
+
+    public Board place(Boardable piece) {
+        this.piece = piece;
+        this.command = new BoardPlaceCommand();
+        return this;
+    }
+
+    public Board at(int x, int y) {
+        this.x = x;
+        this.y = y;
+        if (command.isComplete()) {
+            command.run(this, piece, new Point(x,y));
+        } else {
+            return this;
+        }
+    }
+    public Board from(int x, int y) {
+        if (command.isComplete()) {
+            command.run(this, piece, new Point(x,y), new Point(this.x, this.y));
+        } else {
+            this.x = x;
+            this.y = y;
+            return this;
+        }
+    }
+    public Board to(int x, int y) {
+        if (command.isComplete()) {
+            command.run(this, piece, new Point(this.x, this.y), new Point(x,y));
+        } else {
+            this.x = x;
+            this.y = y;
+            return this;
+        }
+    }
+}
+
+
 public class Board {
     public static final Boardable empty = null;
     public static final int defaultSize = 3;
     private Boardable[][] board;
     int xMax = 0, yMax = 0;
-    int x = 0, y = 0;
-    Boardable piece = null;
-    BoardCommand command = null;
 
     public Board() {
         this.xMax = Board.defaultSize;
@@ -109,11 +168,6 @@ public class Board {
         board = new Boardable[xMax][yMax];
     }
 
-    public Board remove(Boardable piece) {
-        this.piece = piece;
-        this.command = new BoardRemoveCommand();
-        return this;
-    }
     public void remove(Boardable piece, Point at) {
         if (!board[at.x][at.y].equals(piece)) {
             return;
@@ -121,11 +175,6 @@ public class Board {
         board[at.x][at.y] = Board.empty;
     }
 
-    public Board move(Boardable piece) {
-        this.piece = piece;
-        this.command = new BoardMoveCommand();
-        return this;
-    }
     public void move(Boardable piece, Point from, Point to) {
         if (!board[from.x][from.y].equals(piece)) {
             return;
@@ -140,31 +189,9 @@ public class Board {
         }
         board[at.x][at.y] = piece;
     }
-    public Board place(Boardable piece) {
-        this.piece = piece;
-        this.command = new BoardPlaceCommand();
-        return this;
-    }
 
     public Boardable on(int x, int y) {
         return board[x][y];
-    }
-
-    public Board at(int x, int y) {
-        this.x = x;
-        this.y = y;
-        board[x][y] = piece;
-        return this;
-    }
-    public Board from(int x, int y) {
-        this.x = x;
-        this.y = y;
-        return this;
-    }
-    public Board to(int x, int y) {
-        this.x = x;
-        this.y = y;
-        return this;
     }
 }
 
