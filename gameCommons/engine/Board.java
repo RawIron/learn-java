@@ -13,10 +13,10 @@ interface Boardable {
 
 class Building implements Boardable {
     public int heigthIs() {
-        return 4;
+        return 1;
     }
     public int widthIs() {
-        return 4;
+        return 1;
     }
 }
 

@@ -17,11 +17,14 @@ import gameCommons.engine.Board;
 
 abstract class BoardCommand {
     protected LinkedList<String> words = new LinkedList<String>();
-    public abstract void init();
+    protected String name;
+    protected String wordSearch;
 
     public BoardCommand() {
         init();
     }
+    public abstract void init();
+
     public boolean isComplete() {
         return (words.isEmpty());
     }
@@ -30,6 +33,8 @@ abstract class BoardCommand {
             words.remove(word);
         }
     }
+    public String name() { return name; }
+    public String words() { return wordSearch; }
 }
 
 class BoardPlaceCommand extends BoardCommand {
@@ -37,6 +42,8 @@ class BoardPlaceCommand extends BoardCommand {
     public void init() {
         words.add("place");
         words.add("at");
+        name = "place";
+        wordSearch = "place at";
     }
 }
 
@@ -45,6 +52,8 @@ class BoardRemoveCommand extends BoardCommand {
     public void init() {
         words.add("remove");
         words.add("at");
+        name = "remove";
+        wordSearch = "remove at";
     }
 }
 
@@ -54,6 +63,8 @@ class BoardMoveCommand extends BoardCommand {
         words.add("move");
         words.add("from");
         words.add("to");
+        name = "move";
+        wordSearch = "move from to";
     }
 }
 
@@ -106,6 +117,15 @@ class BoardMove implements Runner {
     }
 }
 
+class CommandMatcher {
+    public CommandMatcher() {
+        
+    }
+    public void got(String word) {
+    }
+    public boolean foundMatch() {
+    }
+}
 
 
 public class DottedBoard {
