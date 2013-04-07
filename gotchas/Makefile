@@ -46,5 +46,12 @@ testProducerFactory: ProducerFactoryMethodTest.class
 FunctionTest: FunctionTest.class
 	java -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" junit.textui.TestRunner gotchas.FunctionTest
 
+
+UseOfFinalTest.class:	UseOfFinalTest.java junit.jar
+	javac -classpath "$(package_home)/junit.jar:$(package_home)" UseOfFinalTest.java
+
+UseOfFinal:	UseOfFinalTest.class
+	java -classpath "$(package_home)/junit.jar:$(package_home)" junit.textui.TestRunner gotchas.UseOfFinalTest
+
 clean:	
 	rm -rf *.class
