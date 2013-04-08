@@ -1,29 +1,35 @@
 
 package distributedTransactions;
 
+
+final class TransactionState {
+    public static final TransactionState Idle = new TransactionState();
+    public static final TransactionState Open = new TransactionState();
+    public static final TransactionState Started = new TransactionState();
+    public static final TransactionState Prepared = new TransactionState();
+    public static final TransactionState Committed = new TransactionState();
+    
+    private TransactionState() {}
+}
+
+
 public class TransactionManager {
 
-    public static final int Idle = -1;
-    public static final int Open = 0;
-    public static final int Started = 1;
-    public static final int Prepared = 2;
-    public static final int Committed = 3;
-
-    private int currentState;
+    private TransactionState currentState;
 
     public void open() {
-        currentState = TransactionManager.Open;
+        currentState = TransactionState.Open;
     }
     public void start() {
-        currentState = TransactionManager.Started;
+        currentState = TransactionState.Started;
     }
     public void prepare() {
-        currentState = TransactionManager.Prepared;
+        currentState = TransactionState.Prepared;
     }
     public void commit() {
-        currentState = TransactionManager.Committed;
+        currentState = TransactionState.Committed;
     }
 
     public void resourceManagerIs(ResourceManager rm) {};
-    public int state() { return currentState; }
+    public TransactionState state() { return currentState; }
 }

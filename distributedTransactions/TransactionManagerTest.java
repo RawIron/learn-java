@@ -16,21 +16,21 @@ public class TransactionManagerTest extends TestCase {
     public final void test_open() {
         TransactionManager tm = topic();
         tm.open();
-        assertEquals(tm.state(), tm.Open);
+        assertEquals(tm.state(), TransactionState.Open);
     }
 
     public final void test_start() {
         TransactionManager tm = topic();
         tm.open();
         tm.start();
-        assertEquals(tm.state(), tm.Started);
+        assertEquals(tm.state(), TransactionState.Started);
     }
 
     public final void test_prepare() {
         TransactionManager tm = topic();
         tm.open();
         tm.prepare();
-        assertEquals(tm.state(), tm.Prepared);
+        assertEquals(tm.state(), TransactionState.Prepared);
     }
  
     public final void test_commit() {
@@ -38,6 +38,6 @@ public class TransactionManagerTest extends TestCase {
         tm.open();
         tm.prepare();
         tm.commit();
-        assertEquals(tm.state(), tm.Committed);
+        assertEquals(tm.state(), TransactionState.Committed);
     }
 }
