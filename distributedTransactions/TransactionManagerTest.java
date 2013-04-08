@@ -4,36 +4,40 @@ package distributedTransactions;
 import junit.framework.TestCase;
 
 
-public class TransactionManagerTest {
+public class TransactionManagerTest extends TestCase {
 
     private TransactionManager topic() {
-        ResourceManager rm1 = new ResourceManager();
-        ResourceManager rm2 = new ResourceManager();
+        ResourceManager rm = new ResourceManager();
         TransactionManager tm = new TransactionManager();
-        tm.addResourceManager(rm1);
-        tm.addResourceManager(rm2);
+        tm.resourceManagerIs(rm);
         return tm;
     }
 
     public final void test_open() {
         TransactionManager tm = topic();
         tm.open();
-        assertEquals(tm.resourceCountIs(), 2);
-        assertEquals(tm.stateIs(), tm.Open);
+        assertEquals(tm.state(), tm.Open);
     }
 
     public final void test_start() {
         TransactionManager tm = topic();
         tm.open();
         tm.start();
-        assertEquals(tm.stateIs(), tm.Started);
+        assertEquals(tm.state(), tm.Started);
     }
 
+    public final void test_prepare() {
+        TransactionManager tm = topic();
+        tm.open();
+        tm.prepare();
+        assertEquals(tm.state(), tm.Prepared);
+    }
+ 
     public final void test_commit() {
         TransactionManager tm = topic();
         tm.open();
-        tm.start();
+        tm.prepare();
         tm.commit();
-        assertEquals(tm.stateIs(), tm.Committed);
+        assertEquals(tm.state(), tm.Committed);
     }
 }
