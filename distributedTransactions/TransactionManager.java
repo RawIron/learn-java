@@ -16,6 +16,7 @@ final class TransactionState {
 public class TransactionManager {
 
     private TransactionState currentState;
+    private ResourceManager localResourceManager;
 
     public void open() {
         currentState = TransactionState.Open;
