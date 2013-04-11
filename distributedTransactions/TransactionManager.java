@@ -2,6 +2,9 @@
 package distributedTransactions;
 
 
+class TransactionId {
+}
+
 final class TransactionState {
     public static final TransactionState Idle = new TransactionState();
     public static final TransactionState Open = new TransactionState();
@@ -29,6 +32,13 @@ public class TransactionManager {
     }
     public void commit() {
         currentState = TransactionState.Committed;
+    }
+
+    public void ready(ResourceManager rm) {
+    }
+    public void readyToCommit(ResourceManager rm) {
+    }
+    public void commitSuccess(ResourceManager rm) {
     }
 
     public void resourceManagerIs(ResourceManager rm) {};
