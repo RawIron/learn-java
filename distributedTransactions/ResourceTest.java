@@ -11,7 +11,9 @@ public class ResourceTest extends TestCase {
     private Resource topic_written2Bytes() {
         Resource res = new Resource();
         byte[] record = new byte[] {122, 123};
-        res.write(record);
+        try {
+            res.write(record);
+        } catch (OutOfSpaceException e) {}
         return res;
     }
 
@@ -23,4 +25,8 @@ public class ResourceTest extends TestCase {
         assertEquals(topic_written2Bytes().length(), 2);
     }
 
+    public final void test_writeAndReadBack() {
+        assertEquals(topic_written2Bytes().read()[0], 122);
+        assertEquals(topic_written2Bytes().read()[1], 123);
+    }
 }
