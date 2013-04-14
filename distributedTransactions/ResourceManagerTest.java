@@ -7,11 +7,11 @@ import junit.framework.TestCase;
 public class ResourceManagerTest extends TestCase {
 
     private ResourceManager topic() {
-        Resource r = new Resource();
-        LockManager lockm = new LockManager(r);
+        Resource resource = new Resource();
+        LockManager lockm = new LockManager(resource);
         LogManager logm = new LogManager();
         TransactionManager tm = new TransactionManager();
-        ResourceManager rm = new ResourceManager(r, tm, lockm, logm);
+        ResourceManager rm = new ResourceManager(resource, tm, lockm, logm);
         return rm;
     }
 
