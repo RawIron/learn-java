@@ -29,4 +29,15 @@ public class ResourceTest extends TestCase {
         assertEquals(topic_written2Bytes().read()[0], 122);
         assertEquals(topic_written2Bytes().read()[1], 123);
     }
+
+    public final void test_writeOverBuffer() {
+        Resource res = new Resource();
+        byte[] record = new byte[16382];
+        try {
+            res.write(record);
+            assertTrue(false);
+        } catch (OutOfSpaceException e) {
+            assertTrue(true);
+        }
+    }
 }
