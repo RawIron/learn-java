@@ -26,14 +26,14 @@ public class Resource {
     }
 
     private void append(byte[] change) throws OutOfSpaceException {
-        int has = this.length();
+        int current = this.length();
         int added = change.length;
-        if (!hasSpaceFor(has+added)) {
+        if (!hasSpaceFor(current+added)) {
             throw new OutOfSpaceException();
         }
-        byte[] modified = new byte[has+added];
-        System.arraycopy(data, 0, modified, 0, has);
-        System.arraycopy(change, 0, modified, has, added);
+        byte[] modified = new byte[current+added];
+        System.arraycopy(data, 0, modified, 0, current);
+        System.arraycopy(change, 0, modified, current, added);
         data = modified;
         position += added;
     }
