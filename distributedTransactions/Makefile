@@ -20,5 +20,12 @@ testRM:	ResourceManagerTest.class
 	java -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" junit.textui.TestRunner distributedTransactions.ResourceManagerTest
 
 
+ResourceTest.class:	ResourceTest.java junit.jar mockito.jar
+	javac -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" ResourceTest.java
+
+testR:	ResourceTest.class
+	java -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" junit.textui.TestRunner distributedTransactions.ResourceTest
+
+
 clean:	
 	rm -rf *.class

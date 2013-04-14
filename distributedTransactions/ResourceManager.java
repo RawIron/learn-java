@@ -74,6 +74,7 @@ public class ResourceManager {
     private TransactionManager tm;
     private Resource resource;
     private byte[] beforeImage;
+    private ResourceState currentState;
     
     public ResourceManager(
         Resource resource,
@@ -89,6 +90,7 @@ public class ResourceManager {
 
     public boolean isReady() {
         tm.ready(this);
+        currentState = ResourceState.Open;
         return true;
     }
     public void prepare() {
@@ -96,6 +98,7 @@ public class ResourceManager {
         beforeImage = resource.read();
         logm.write(beforeImage);
         tm.readyToCommit(this);
+        currentState = ResourceState.Prepared;
     }
     public void commit() {
         byte[] page = new byte[] {34,};
@@ -103,10 +106,11 @@ public class ResourceManager {
         logm.invalidate(beforeImage);
         lockm.release();
         tm.commitSuccess(this);
+        currentState = ResourceState.Committed;
     }
 
     public ResourceState state() {
-        return null;
+        return currentState;
     }
 }
 
