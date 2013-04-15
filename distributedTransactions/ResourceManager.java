@@ -16,27 +16,6 @@ final class ResourceState {
     private ResourceState() {}
 }
 
-
-class Resource {
-    byte[] data = new byte[8192];
-
-    public void write(byte[] change) {
-        append(change);
-    }
-    public byte[] read() {
-        return null;
-    }
-
-    private void append(byte[] change) {
-        int has = data.length;
-        int added = change.length;
-        byte[] modified = new byte[has+added];
-        System.arraycopy(data, 0, modified, 0, has);
-        System.arraycopy(change, 0, modified, has, added);
-        data = modified;
-    }
-}
-
 class LogManager {
     Vector<byte[]> pagelog = new Vector<byte[]>(512, 128);
     public void write(byte[] entry) {
