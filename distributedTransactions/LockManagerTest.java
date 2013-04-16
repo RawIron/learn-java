@@ -49,6 +49,7 @@ public class LockManagerTest extends TestCase {
     }
 
     public final void test_acquireAndReleaseLock() {
+        assertFalse(topic_releasedLock().release());
     }
 }
 
