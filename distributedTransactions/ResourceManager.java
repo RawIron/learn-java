@@ -28,24 +28,6 @@ class LogManager {
     }
 }
 
-class LockManager {
-    Resource r = null;
-    HashMap<Resource,Byte> locktable = new HashMap<Resource,Byte>();
-    public LockManager(Resource resource) {
-        this.r = resource;
-    }
-    public boolean lock() {
-        if (locktable.containsKey(r)) {
-            return false;
-        }
-        locktable.put(r,null);
-        return true;
-    }
-    public void release() {
-        locktable.remove(r);
-    }
-}
-
 
 public class ResourceManager {
     private LockManager lockm;
