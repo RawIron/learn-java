@@ -2,6 +2,7 @@
 package distributedTransactions;
 
 import java.util.HashMap;
+import java.util.Collection;
 import java.util.concurrent.ArrayBlockingQueue;
 
 
@@ -10,6 +11,16 @@ interface LockCallback {
 }
 
 class LockRequestQueue<T> extends ArrayBlockingQueue<T> {
+    public LockRequestQueue(int capacity) {
+        super(capacity);
+    }
+    public LockRequestQueue(int capacity, boolean fair) {
+        super(capacity, fair);
+    }
+    public LockRequestQueue(int capacity, boolean fair, Collection<T> c) {
+        super(capacity, fair, c);
+    }
+
     public boolean isEmpty() {
         return (this.size() < 1);
     }
@@ -19,7 +30,7 @@ class LockRequestQueue<T> extends ArrayBlockingQueue<T> {
 public class LockManager {
     Resource r = null;
     HashMap<Resource,Byte> locktable = new HashMap<Resource,Byte>();
-    LockRequestQueue<LockCallback> waitQueue = new LockRequestQueue<LockCallback>();
+    LockRequestQueue<LockCallback> waitQueue = new LockRequestQueue<LockCallback>(10);
 
     public LockManager(Resource resource) {
         this.r = resource;
@@ -27,7 +38,7 @@ public class LockManager {
 
     public boolean lock(LockCallback callback) {
         if (locktable.containsKey(r)) {
-            waitQueue.put(callback);
+            try { waitQueue.put(callback); } catch(InterruptedException e) {}
             return false;
         } else {
             locktable.put(r,null);
@@ -36,9 +47,14 @@ public class LockManager {
     }
 
     public void release() {
+        if (locktable.isEmpty()) {
+            return;
+        }
         if (!waitQueue.isEmpty()) {
-            LockCallback callback = waitQueue.take();
-            callback.resourceIsAvailable();
+            try {
+                LockCallback callback = waitQueue.take();
+                callback.resourceIsAvailable();
+            } catch(InterruptedException e) {}
             return;
         }
         locktable.remove(r);
