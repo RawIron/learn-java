@@ -46,18 +46,19 @@ public class LockManager {
         }
     }
 
-    public void release() {
+    public boolean release() {
         if (locktable.isEmpty()) {
-            return;
+            return false;
         }
         if (!waitQueue.isEmpty()) {
             try {
                 LockCallback callback = waitQueue.take();
                 callback.resourceIsAvailable();
             } catch(InterruptedException e) {}
-            return;
+            return false;
         }
         locktable.remove(r);
+        return true;
     }
 }
 
