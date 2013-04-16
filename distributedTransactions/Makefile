@@ -27,5 +27,12 @@ testR:	ResourceTest.class
 	java -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" junit.textui.TestRunner distributedTransactions.ResourceTest
 
 
+LockManagerTest.class:	LockManagerTest.java junit.jar mockito.jar
+	javac -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" LockManagerTest.java
+
+testLockM:	LockManagerTest.class
+	java -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" junit.textui.TestRunner distributedTransactions.LockManagerTest
+
+
 clean:	
 	rm -rf *.class
