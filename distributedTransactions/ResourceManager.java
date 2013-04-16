@@ -1,10 +1,6 @@
 
 package distributedTransactions;
 
-import java.util.HashMap;
-import java.util.Vector;
-import java.lang.System;
-
 
 final class ResourceState {
     public static final ResourceState Idle = new ResourceState();
@@ -14,18 +10,6 @@ final class ResourceState {
     public static final ResourceState Committed = new ResourceState();
     
     private ResourceState() {}
-}
-
-class LogManager {
-    Vector<byte[]> pagelog = new Vector<byte[]>(512, 128);
-    public void write(byte[] entry) {
-        pagelog.add(entry);
-    }
-    public void invalidate(byte[] entry) {
-        pagelog.remove(entry);
-    }
-    public void recover(TransactionId tid) {
-    }
 }
 
 
