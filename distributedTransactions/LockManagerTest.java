@@ -18,7 +18,7 @@ public class LockManagerTest extends TestCase {
     private Callback callback;
 
     private LockManager topic_create() {
-        Callback callback = new Callback();
+        callback = new Callback();
         Resource resource = new Resource();
         LockManager lockM = new LockManager(resource);
         return lockM;
@@ -51,7 +51,7 @@ public class LockManagerTest extends TestCase {
     }
 
     public final void test_releaseNonExistingLock() {
-        assertTrue(topic_create().release());
+        assertFalse(topic_create().release());
     }
 
     public final void test_releaseExistingLock() {
