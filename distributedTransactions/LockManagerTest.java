@@ -6,6 +6,7 @@ import distributedTransactions.LockManager;
 
 
 public class LockManagerTest extends TestCase {
+
     class Callback implements LockCallback {
         private boolean blocked = true;
         public void resourceIsAvailable() {
@@ -66,6 +67,7 @@ public class LockManagerTest extends TestCase {
         assertFalse(topic_releasedLock().release());
     }
 
+    // no good. how to code sequence of steps?
     public final void test_acquireAndReleaseLock() {
         assertFalse(topic_releasedLock().release());
     }

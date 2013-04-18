@@ -3,8 +3,9 @@ package distributedTransactions;
 
 import java.util.Vector;
 
+class TransactionId {}
 
-class LogManager {
+public class LogManager {
     Vector<byte[]> pagelog = new Vector<byte[]>(512, 128);
     public void write(byte[] entry) {
         pagelog.add(entry);
