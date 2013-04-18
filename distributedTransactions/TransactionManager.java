@@ -1,9 +1,8 @@
 
 package distributedTransactions;
 
+import distributedTransactions.TransactionId;
 
-class TransactionId {
-}
 
 final class TransactionState {
     public static final TransactionState Idle = new TransactionState();
@@ -41,6 +40,6 @@ public class TransactionManager {
     public void commitSuccess(ResourceManager rm) {
     }
 
-    public void resourceManagerIs(ResourceManager rm) {};
+    public void resourceManagerIs(ResourceManager rm) { localResourceManager = rm; }
     public TransactionState state() { return currentState; }
 }

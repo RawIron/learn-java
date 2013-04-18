@@ -2,9 +2,7 @@
 package distributedTransactions;
 
 import java.util.Vector;
-
-
-class TransactionId {}
+import distributedTransactions.TransactionId;
 
 
 public class LogManager<T> {

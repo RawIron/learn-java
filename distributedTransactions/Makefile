@@ -41,7 +41,7 @@ testLogM:	LogManagerTest.class
 	java -classpath "$(package_home)/junit.jar:$(package_home)/mockito.jar:$(package_home)" junit.textui.TestRunner distributedTransactions.LogManagerTest
 
 
-tests:	testTM testRM testLockM testLogM testR
+tests:	testLockM testLogM testR testTM testRM 
 
 
 clean:	

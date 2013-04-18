@@ -13,7 +13,7 @@ final class ResourceState {
 }
 
 
-public class ResourceManager {
+public class ResourceManager implements LockCallback {
     private LockManager lockm;
     private LogManager logm;
     private TransactionManager tm;
@@ -39,7 +39,7 @@ public class ResourceManager {
         return true;
     }
     public void prepare() {
-        lockm.lock();
+        lockm.lock(this);
         beforeImage = resource.read();
         logm.write(beforeImage);
         tm.readyToCommit(this);
@@ -47,7 +47,7 @@ public class ResourceManager {
     }
     public void commit() {
         byte[] page = new byte[] {34,};
-        resource.write(page);
+        try { resource.write(page); } catch(OutOfSpaceException e) {}
         logm.invalidate(beforeImage);
         lockm.release();
         tm.commitSuccess(this);
@@ -56,6 +56,9 @@ public class ResourceManager {
 
     public ResourceState state() {
         return currentState;
+    }
+
+    public void resourceIsAvailable() {
     }
 }
 
