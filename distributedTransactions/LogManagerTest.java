@@ -37,8 +37,8 @@ class LogManagerTopic<T> {
         return recoveredImage;
     }
 
-    public boolean persisted() { return true; }
-    public boolean noBeforeImageFound() { return true; }
+    public boolean isPersisted() { return true; }
+    public boolean throwsNoBeforeImageFound() { return true; }
 }
 
 
@@ -52,10 +52,10 @@ public class LogManagerTest extends TestCase {
     }
 
     public final void test_writeBeforeImage() {
-        assertTrue(topic.imageWritten().persisted());
+        assertTrue(topic.imageWritten().isPersisted());
     }
-    public final void test_invalidate() {
-        assertTrue(topic.invalidated().noBeforeImageFound());
+    public final void test_invalidateNonExistingBeforeImage() {
+        assertTrue(topic.invalidated().throwsNoBeforeImageFound());
     }
     public final void test_recoverFromBeforeImage() {
         assertEquals(topic.imageRecovered(), logEntry);
