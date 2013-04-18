@@ -3,17 +3,20 @@ package distributedTransactions;
 
 import java.util.Vector;
 
+
 class TransactionId {}
 
-public class LogManager {
-    Vector<byte[]> pagelog = new Vector<byte[]>(512, 128);
-    public void write(byte[] entry) {
+
+public class LogManager<T> {
+    Vector<T> pagelog = new Vector<T>(512, 128);
+    public void write(T entry) {
         pagelog.add(entry);
     }
-    public void invalidate(byte[] entry) {
+    public void invalidate(T entry) {
         pagelog.remove(entry);
     }
-    public void recover(TransactionId tid) {
+    public T recover() {
+        return pagelog.lastElement();
     }
 }
 
