@@ -7,14 +7,14 @@ import distributedTransactions.LogManager;
 
 class LogManagerTopic<T> {
     private T beforeImage;
-    private LogManager<T> logM;
+    private LogManagerMonitor<T> logM;
 
     public LogManagerTopic(T logEntry) {
         beforeImage = logEntry;
     }
 
     private void init() {
-        logM = new LogManager<T>();
+        logM = new LogManagerMonitor<T>(new LogManager<T>());
     }
     public LogManagerTopic<T> created() {
         init();
@@ -37,8 +37,8 @@ class LogManagerTopic<T> {
         return recoveredImage;
     }
 
-    public boolean isPersisted() { return true; }
-    public boolean throwsNoBeforeImageFound() { return true; }
+    public boolean isPersisted() { return logM.isPersisted(); }
+    public boolean throwsNoBeforeImageFound() { return logM.throwsNoBeforeImageFound(); }
 }
 
 
