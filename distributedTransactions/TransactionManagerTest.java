@@ -7,8 +7,11 @@ import junit.framework.TestCase;
 public class TransactionManagerTest extends TestCase {
 
     private TransactionManager topic() {
-        ResourceManager rm = new ResourceManager();
         TransactionManager tm = new TransactionManager();
+        Resource r = new Resource();
+        LockManager lockM = new LockManager(r);
+        LogManager logM = new LogManager();
+        ResourceManager rm = new ResourceManager(r, tm, lockM, logM);
         tm.resourceManagerIs(rm);
         return tm;
     }
