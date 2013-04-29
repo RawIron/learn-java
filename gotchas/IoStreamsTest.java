@@ -26,7 +26,7 @@ public class IoStreamsTest extends TestCase {
         try {
             while ((line = reader.readLine()) != null) {
                 words = line.split(":");
-                languages.put(words[0],words[1]);
+                languages.put(words[0].trim(),words[1].trim());
             }
         } catch (IOException e) {}
     }
@@ -34,5 +34,11 @@ public class IoStreamsTest extends TestCase {
     public final void test_readUnicodeFile() {
         topic();
         assertEquals(115, languages.size());
+    }
+
+    public final void test_twoDifferentLanguagesAreCorrect() {
+        topic();
+        assertEquals("我能吞下玻璃而不伤身体。", languages.get("Chinese"));
+        assertEquals("나는 유리를 먹을 수 있어요. 그래도 아프지 않아요", languages.get("Korean"));
     }
 }
