@@ -58,5 +58,11 @@ IoStreamsTest.class:	IoStreamsTest.java junit.jar
 IoStreams:	IoStreamsTest.class
 	java -classpath "$(package_home)/junit.jar:$(package_home)" junit.textui.TestRunner gotchas.IoStreamsTest
 
+RegexTest.class:	RegexTest.java junit.jar
+	javac -classpath "$(package_home)/junit.jar:$(package_home)" RegexTest.java
+Regex:	RegexTest.class
+	java -classpath "$(package_home)/junit.jar:$(package_home)" junit.textui.TestRunner gotchas.RegexTest
+
+
 clean:	
 	rm -rf *.class
