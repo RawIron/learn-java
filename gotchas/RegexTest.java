@@ -8,9 +8,14 @@ import java.util.regex.Pattern;
 
 class Topic {
     private Pattern pattern = Pattern.compile("^Change [0-9]++ ");
+    private Matcher matcher;
+
+    public Topic() {
+        matcher = pattern.matcher("");
+    }
 
     public boolean matches(String haystack) {
-        Matcher matcher = pattern.matcher(haystack);
+        matcher.reset(haystack);
         return matcher.lookingAt();
     }
 }
