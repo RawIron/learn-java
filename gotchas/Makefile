@@ -53,5 +53,10 @@ UseOfFinalTest.class:	UseOfFinalTest.java junit.jar
 UseOfFinal:	UseOfFinalTest.class
 	java -classpath "$(package_home)/junit.jar:$(package_home)" junit.textui.TestRunner gotchas.UseOfFinalTest
 
+IoStreamsTest.class:	IoStreamsTest.java junit.jar
+	javac -classpath "$(package_home)/junit.jar:$(package_home)" IoStreamsTest.java
+IoStreams:	IoStreamsTest.class
+	java -classpath "$(package_home)/junit.jar:$(package_home)" junit.textui.TestRunner gotchas.IoStreamsTest
+
 clean:	
 	rm -rf *.class
