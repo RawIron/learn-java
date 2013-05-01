@@ -63,6 +63,11 @@ RegexTest.class:	RegexTest.java junit.jar
 Regex:	RegexTest.class
 	java -classpath "$(package_home)/junit.jar:$(package_home)" junit.textui.TestRunner gotchas.RegexTest
 
+ExecTest.class:	ExecTest.java junit.jar
+	javac -classpath "$(package_home)/junit.jar:$(package_home)" ExecTest.java
+Exec:	ExecTest.class
+	java -classpath "$(package_home)/junit.jar:$(package_home)" junit.textui.TestRunner gotchas.ExecTest
+
 
 clean:	
 	rm -rf *.class
