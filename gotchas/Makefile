@@ -69,5 +69,11 @@ Exec:	ExecTest.class
 	java -classpath "$(package_home)/junit.jar:$(package_home)" junit.textui.TestRunner gotchas.ExecTest
 
 
+Sha1Test.class:	Sha1Test.java junit.jar
+	javac -classpath "$(package_home)/junit.jar:$(package_home)" Sha1Test.java
+Sha1Test:	Sha1Test.class
+	java -classpath "$(package_home)/junit.jar:$(package_home)" junit.textui.TestRunner gotchas.Sha1Test
+
+
 clean:	
 	rm -rf *.class
