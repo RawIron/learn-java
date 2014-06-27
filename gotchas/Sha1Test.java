@@ -64,20 +64,20 @@ public class Sha1Test extends TestCase {
 
   private String hmacSha1(final String key, final String value) {
     try {
-        // Get an hmac_sha1 key from the raw key bytes
-        byte[] keyBytes = bytesOfString(key);
-        SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA1");
+      // Get an hmac_sha1 key from the raw key bytes
+      byte[] keyBytes = bytesOfString(key);
+      SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA1");
 
-        // Get an hmac_sha1 Mac instance and initialize with the signing key
-        Mac mac = Mac.getInstance("HmacSHA1");
-        mac.init(signingKey);
+      // Get an hmac_sha1 Mac instance and initialize with the signing key
+      Mac mac = Mac.getInstance("HmacSHA1");
+      mac.init(signingKey);
 
-        // Compute the hmac on input data bytes
-        byte[] rawHmac = mac.doFinal(bytesOfString(value));
+      // Compute the hmac on input data bytes
+      byte[] rawHmac = mac.doFinal(bytesOfString(value));
 
-        return hexOfBytes2(rawHmac);
+      return hexOfBytes2(rawHmac);
     } catch (Exception e) {
-        throw new RuntimeException(e);
+      throw new RuntimeException(e);
     }
   }
 
