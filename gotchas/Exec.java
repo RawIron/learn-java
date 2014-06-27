@@ -1,4 +1,3 @@
-
 package gotchas;
 
 import java.util.List;
@@ -43,7 +42,7 @@ class CommandRunner {
         return lines.toString();
     }
 
-    public String stderror() {
+    public String stderr() {
         StringBuilder lines = new StringBuilder();
         try {
             String line;
@@ -100,13 +99,11 @@ class Exec {
     }
 
     public String stdout() {
-        String stdout = exec.stdout();
-        return stdout;
+        return exec.stdout();
     }
 
     public String stderr() {
-        String stderr = exec.stderror();
-        return stderr;
+        return exec.stderr();
     }
 }
 
