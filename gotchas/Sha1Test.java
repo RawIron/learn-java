@@ -38,11 +38,17 @@ public class Sha1Test extends TestCase {
     return null;
   }
 
+  private String base64OfBytes(final byte[] bytes) {
+    return new String(Base64.encodeBase64(bytes));
+  }
+
   private byte[] bytesOfString(final String s) {
     byte[] bytes = null;
     try {
       bytes = s.getBytes("UTF-8");
-    } catch (UnsupportedEncodingException e) { }
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     return bytes;
   }
 
