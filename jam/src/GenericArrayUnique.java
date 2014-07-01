@@ -1,7 +1,7 @@
 
 public class GenericArrayUnique<E> {
 	private int next = 0;
-	protected E[] c;
+	private E[] c;
 	
 	public GenericArrayUnique(E[] values) {
 		this.c = values;
