@@ -1,4 +1,5 @@
-javaScratchpad
-==============
+# Java scratchpad
 
-sketches of java
+## jam
+
+## gotchas
