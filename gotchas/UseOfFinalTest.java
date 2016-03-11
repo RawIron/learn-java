@@ -9,6 +9,7 @@ public class UseOfFinalTest extends TestCase {
     public final void test_finalInBlock() {
         final int counter;
         counter = 4;
+        // does not compile
         ++counter;
         assertEquals(counter,4);
     }
