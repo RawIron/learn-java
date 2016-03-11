@@ -1,7 +1,7 @@
 package gotchas;
 
 import junit.framework.TestCase;
-
+//import org.apache.commons.codec.binary.Base64;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -38,9 +38,9 @@ public class Sha1Test extends TestCase {
     return null;
   }
 
-  private String base64OfBytes(final byte[] bytes) {
-    return new String(Base64.encodeBase64(bytes));
-  }
+ // private String base64OfBytes(final byte[] bytes) {
+ //   return new String(Base64.encodeBase64(bytes));
+ // }
 
   private byte[] bytesOfString(final String s) {
     byte[] bytes = null;
