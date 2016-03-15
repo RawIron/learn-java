@@ -1,11 +1,29 @@
 # Java scratchpad
 
 ## jam
+simple coding challenges.
+come up with one and jam.
+
+### Maven
+
+run all tests
+```bash
+mvn test
+```
+
+run one test
+```bash
+mvn test -Dtest=GenericArrayUniqueTest
+```
 
 ## gotchas
 test language semantics.
 test short recipes.
 micro-benchmark.
+
+`gotchas` are implemented as tests.
+the modules don't have a `main` function.
+to run the `gotchas` simply run the tests.
 
 ### Makefile
 
@@ -44,22 +62,22 @@ YourNewTest: YourNewTest.class
 ```
 
 add the new test to the `tests` goal
-```
+```make
 tests: ATest YourNewTest
 ```
 
 #### Run
 run all the tests
-```
+```bash
 make tests
 ```
 
 run one test
-```
+```bash
 make ProductTest
 ```
 
 remove all compiled and temp files
-```
+```bash
 make clean
 ```
