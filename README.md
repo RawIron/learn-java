@@ -4,8 +4,23 @@
 simple coding challenges.
 come up with one and jam.
 
+#### Algo and Data Structures
+run the tests
+* GenericArrayUnique
+* InsertSortLotsOfMemory
+* LinkedListAppendOnly
+* RingBufferOfArray
+
+#### Concurrency
+run `mainClass`
+* ThreadsFightOverArray
+* ThreadsPingPongWithReferee
+* ThreadsRingLoops
+* WorkerWithAsyncTask
+
 ### Maven
 
+#### Run
 run all tests
 ```bash
 mvn test
@@ -14,6 +29,11 @@ mvn test
 run one test
 ```bash
 mvn test -Dtest=GenericArrayUniqueTest
+```
+
+run a `class` with `main` in it
+```bash
+mvn exec:java -Dexec.mainClass="WorkerWithAsyncTask"
 ```
 
 ## gotchas
