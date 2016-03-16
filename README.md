@@ -33,6 +33,9 @@ mvn test -Dtest=GenericArrayUniqueTest
 
 run a `class` with `main` in it
 ```bash
+# compile the classes first
+mvn compile
+# run main
 mvn exec:java -Dexec.mainClass="WorkerWithAsyncTask"
 ```
 
