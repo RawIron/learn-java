@@ -1,4 +1,4 @@
-# Java scratchpad
+# A few quick Java hacks
 
 ## jam
 simple coding challenges.
