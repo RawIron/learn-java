@@ -1,4 +1,3 @@
-
 package distributedTransactions;
 
 import java.util.HashMap;
@@ -61,4 +60,3 @@ public class LockManager {
         return true;
     }
 }
-

@@ -1,4 +1,3 @@
-
 package distributedTransactions;
 
 import junit.framework.TestCase;
@@ -24,17 +23,20 @@ public class LockManagerTest extends TestCase {
         LockManager lockM = new LockManager(resource);
         return lockM;
     }
+
     private LockManager topic_hasLock() {
         LockManager lockM = topic_create();
         lockM.lock(callback);
         return lockM;
     }
+
     private LockManager topic_releasedLock() {
         LockManager lockM = topic_create();
         lockM.lock(callback);
         lockM.release();
         return lockM;
     }
+
     private LockManager topic_callbackTriggered() {
         LockManager lockM = topic_create();
         lockM.lock(callback);
@@ -77,4 +79,3 @@ public class LockManagerTest extends TestCase {
         assertFalse(callback.isBlocked());
     }
 }
-

@@ -1,4 +1,3 @@
-
 package distributedTransactions;
 
 import junit.framework.TestCase;
@@ -35,7 +34,7 @@ public class TransactionManagerTest extends TestCase {
         tm.prepare();
         assertEquals(tm.state(), TransactionState.Prepared);
     }
- 
+
     public final void test_commit() {
         TransactionManager tm = topic();
         tm.open();
