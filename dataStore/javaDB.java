@@ -1,19 +1,19 @@
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+
 public class javaDB {
   static Connection conn;
 
   public static void main(String[] args) {
-    //String driver = "org.apache.derby.jdbc.EmbeddedDriver";
+  //String driver = "org.apache.derby.jdbc.EmbeddedDriver";
 	//String connectionURL = "jdbc:derby:myDatabase;create=true";
 	String driver = "org.apache.derby.jdbc.ClientDriver";
 	String connectionURL = "jdbc:derby://localhost/game";
-    String createString = "CREATE TABLE Player (NAME VARCHAR(32) NOT NULL, ADDRESS VARCHAR(50) NOT NULL)";
+  String createString = "CREATE TABLE Player (NAME VARCHAR(32) NOT NULL, ADDRESS VARCHAR(50) NOT NULL)";
 
     try {
       Class.forName(driver);
