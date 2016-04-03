@@ -1,5 +1,0 @@
-
-package distributedTransactions;
-
-class TransactionId {}
-

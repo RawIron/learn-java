@@ -25,8 +25,8 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>.</sourceDirectory>
-        <testSourceDirectory>.</testSourceDirectory>
+        <sourceDirectory>src/tpmonitor</sourceDirectory>
+        <testSourceDirectory>src/tpmonitor</testSourceDirectory>
         <resources>
             <resource>
                 <directory>src/resources</directory>

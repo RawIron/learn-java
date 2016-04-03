@@ -1,6 +1,3 @@
-
-package distributedTransactions;
-
 import java.lang.System;
 import java.util.Arrays;
 

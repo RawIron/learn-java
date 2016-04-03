@@ -1,6 +1,3 @@
-
-package distributedTransactions;
-
 import junit.framework.TestCase;
 
 
@@ -27,7 +24,7 @@ public class ResourceManagerTest extends TestCase {
         rm.prepare();
         assertEquals(rm.state(), ResourceState.Prepared);
     }
- 
+
     public final void test_commit() {
         ResourceManager rm = topic();
         rm.isReady();

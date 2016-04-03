@@ -1,7 +1,4 @@
-package distributedTransactions;
-
 import junit.framework.TestCase;
-import distributedTransactions.LogManager;
 
 
 class LogManagerTopic<T> {

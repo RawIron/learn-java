@@ -1,5 +1,3 @@
-package distributedTransactions;
-
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.concurrent.ArrayBlockingQueue;

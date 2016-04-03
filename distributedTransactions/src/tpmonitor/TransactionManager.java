@@ -1,16 +1,10 @@
-
-package distributedTransactions;
-
-import distributedTransactions.TransactionId;
-
-
 final class TransactionState {
     public static final TransactionState Idle = new TransactionState();
     public static final TransactionState Open = new TransactionState();
     public static final TransactionState Started = new TransactionState();
     public static final TransactionState Prepared = new TransactionState();
     public static final TransactionState Committed = new TransactionState();
-    
+
     private TransactionState() {}
 }
 

@@ -1,8 +1,4 @@
-package distributedTransactions;
-
 import junit.framework.TestCase;
-import distributedTransactions.LockManager;
-
 
 public class LockManagerTest extends TestCase {
 

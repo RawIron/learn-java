@@ -1,8 +1,4 @@
-
-package distributedTransactions;
-
 import java.util.Vector;
-import distributedTransactions.TransactionId;
 
 
 class LogManagerMonitor<T> {

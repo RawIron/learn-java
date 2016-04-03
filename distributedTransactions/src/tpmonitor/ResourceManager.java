@@ -1,14 +1,10 @@
-
-package distributedTransactions;
-
-
 final class ResourceState {
     public static final ResourceState Idle = new ResourceState();
     public static final ResourceState Open = new ResourceState();
     public static final ResourceState Started = new ResourceState();
     public static final ResourceState Prepared = new ResourceState();
     public static final ResourceState Committed = new ResourceState();
-    
+
     private ResourceState() {}
 }
 
@@ -20,7 +16,7 @@ public class ResourceManager implements LockCallback {
     private Resource resource;
     private byte[] beforeImage;
     private ResourceState currentState;
-    
+
     public ResourceManager(
         Resource resource,
         TransactionManager tm,
