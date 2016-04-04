@@ -1,7 +1,5 @@
 package gamecommons.engine;
 
-import gamecommons.engine.Board;
-
 
 interface IAction {
     public void doIt();
@@ -18,16 +16,16 @@ class StorageMover {
     private int y;
     private Board board;
     private Boardable item;
-    private Inventory storage;
+    private StoreHouse storage;
 
     public StorageMover() {}
 
     public void on(gamecommons.engine.Board board) {}
     public void take(Boardable Item, int x, int y) {}
-    public void stashItInto(Inventory storage) {}
+    public void stashItInto(StoreHouse storage) {}
 
     public void moveIt() {
-        board.remove(item.at(x,y));
+        board.remove(item.at(x,y), new Point(x, y));
         storage.packAway(item);
     }
 }

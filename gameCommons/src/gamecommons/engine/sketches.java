@@ -1,3 +1,4 @@
+package gamecommons.engine;
 
 
 class Sketches {
@@ -24,9 +25,9 @@ class Sketches {
 
 
 class EventEngine {
-counters := store current state
-sequencers := register at counters
-actions := manipulate counters
+    counters := store current state
+    sequencers := register at counters
+    actions := manipulate counters
 
     xp(counter)
     coins(counter)

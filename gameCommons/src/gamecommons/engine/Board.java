@@ -9,6 +9,7 @@ import java.util.LinkedList;
 interface Boardable {
     public int heigthIs();
     public int widthIs();
+    Boardable at(int x, int y);
 }
 
 class Building implements Boardable {
@@ -17,6 +18,10 @@ class Building implements Boardable {
     }
     public int widthIs() {
         return 1;
+    }
+
+    public Boardable at(int x, int y) {
+        return null;
     }
 }
 

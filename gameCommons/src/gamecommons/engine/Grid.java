@@ -1,7 +1,4 @@
-
 package gamecommons.engine;
-
-import gamecommons.engine.Board;
 
 
 public class Grid {
@@ -12,12 +9,16 @@ public class Grid {
                               verticalLines * verticalLines);
     }
 
-    public northIs() {
+    public Piece northIs() {
+        return null;
     }
-    public southIs() {
+    public Piece southIs() {
+        return null;
     }
-    public eastIs() {
+    public Piece eastIs() {
+        return null;
     }
-    public westIs() {
+    public Piece westIs() {
+        return null;
     }
 }
