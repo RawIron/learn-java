@@ -5,8 +5,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 import gamecommons.system.Trace;
-import gamecommons.balanceSettings.DataStore;
-import gamecommons.balanceSettings.DataItemLevel;
+import gamecommons.system.DataStore;
 
 
 public class DataLevel {

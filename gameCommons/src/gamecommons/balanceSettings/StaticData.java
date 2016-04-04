@@ -2,7 +2,7 @@ package gamecommons.balanceSettings;
 
 import java.util.HashMap;
 import gamecommons.system.Trace;
-import gamecommons.balanceSettings.DataStore;
+import gamecommons.system.DataStore;
 
 
 public class StaticDataCache {}

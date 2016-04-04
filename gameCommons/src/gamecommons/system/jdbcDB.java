@@ -1,14 +1,12 @@
-package gamecommons.balanceSettings;
+package gamecommons.system;
 
-import java.sql.DriverManager;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-import gamecommons.balanceSettings.DataStore;
-import gamecommons.system.Trace;
+import gamecommons.balanceSettings.DbManager;
 
 
 public class jdbcDB implements DataStore {
