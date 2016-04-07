@@ -78,5 +78,6 @@ class ExampleActionFirst {
 
         action.run(transaction).on(player);
         action.trade(building).For(gold).on(player);
+//        action.listenOn(xpCounter).trigger(levelUp).on(player);
     }
 }
