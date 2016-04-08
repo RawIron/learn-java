@@ -2,36 +2,33 @@ package gamecommons.engine;
 
 
 class ExampleActionFirst {
-    abstract class Action {
-        abstract void run(Player p);
+    interface IPlayerAction {
+        void on(Player p);
     }
 
-    class RewardAction extends Action {
+    interface IBuildingAction {
+        void on(Building b);
+    }
+
+    class RewardAction implements IPlayerAction {
         Valuable v;
         RewardAction(Valuable v) { this.v = v; }
-        void run(Player p) { p.reward(v); }
+        public void on(Player p) { p.reward(v); }
     }
 
-    class ConsumeAction extends Action {
+    class ConsumeAction implements IPlayerAction {
         Valuable v;
         ConsumeAction(Valuable v) { this.v = v; }
-        void run(Player p) { p.consume(v); }
+        public void on(Player p) { p.consume(v); }
     }
 
     class Actions {
-        Action action = null;
-
-        void on(Player p) { this.action.run(p); }
-        void on(Building b) { }
-
-        Actions reward(Valuable v) {
-            this.action = new RewardAction(v);
-            return this;
+        RewardAction reward(Valuable v) {
+            return new RewardAction(v);
         }
 
-        Actions consume(Valuable v) {
-            this.action = new ConsumeAction(v);
-            return this;
+        ConsumeAction consume(Valuable v) {
+            return new ConsumeAction(v);
         }
 
         Transaction trade(Building item) {
@@ -40,7 +37,7 @@ class ExampleActionFirst {
 
         void take(Valuable v) {}
 
-        Actions run(Transaction t) {
+        IPlayerAction run(Transaction t) {
             return this;
         }
     }
@@ -49,7 +46,7 @@ class ExampleActionFirst {
 
     class Transaction {
         Transaction trade(Building b) { return this; }
-        Actions For(Valuable v) { return null; }
+        IPlayerAction For(Valuable v) { return null; }
         void doIt() {}
     }
 
