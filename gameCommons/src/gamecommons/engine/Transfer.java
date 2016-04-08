@@ -1,11 +1,11 @@
-/*
-    buy(inventory, coins)
-    transaction.give(inventory).take(coins).commit()
-    sell(inventory, coins)
-    transaction.give(coins).take(inventory).commit()
- */
-
 package gamecommons.engine;
+
+/**
+ buy(inventory, coins)
+ transaction.give(inventory).take(coins).commit()
+ sell(inventory, coins)
+ transaction.give(coins).take(inventory).commit()
+ */
 
 
 interface Accountable {
@@ -15,7 +15,7 @@ interface Accountable {
 }
 
 
-class CoinsWallet implements Accountable {
+class CoinsAccount implements Accountable {
     private int balance = 0;
 
     public void add(int quantity) {
@@ -29,7 +29,8 @@ class CoinsWallet implements Accountable {
     }
 }
 
-class BuildingInventory implements Accountable {
+
+class BuildingAccount implements Accountable {
     private int balance = 0;
 
     public void add(int quantity) {
@@ -43,15 +44,16 @@ class BuildingInventory implements Accountable {
     }
 }
 
-public class Transaction {
+
+public class Transfer {
     private Accountable lhs = null, rhs = null;
     private int added = 0, subtracted = 0;
     private boolean giveWasCalled = false;
     private boolean takeWasCalled = false;
 
-    public Transaction() {}
+    public Transfer() {}
 
-    public Transaction give(int added, Accountable lhs) {
+    public Transfer give(int added, Accountable lhs) {
         if (giveWasCalled) {
             return null;
         }
@@ -60,7 +62,7 @@ public class Transaction {
         giveWasCalled = true;
         return this;
     }
-    public Transaction take(int subtracted, Accountable rhs) {
+    public Transfer take(int subtracted, Accountable rhs) {
         if (takeWasCalled) {
             return null;
         }
@@ -84,4 +86,3 @@ public class Transaction {
         giveWasCalled = takeWasCalled = false;
     }
 }
-
