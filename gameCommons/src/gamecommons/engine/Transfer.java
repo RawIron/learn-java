@@ -8,14 +8,13 @@ package gamecommons.engine;
  */
 
 
-interface Accountable {
+interface IAccountable {
     public void add(int quantity);
     public void sub(int quantity);
     public int balance();
 }
 
-
-class CoinsAccount implements Accountable {
+class Accountable implements IAccountable {
     private int balance = 0;
 
     public void add(int quantity) {
@@ -30,19 +29,8 @@ class CoinsAccount implements Accountable {
 }
 
 
-class BuildingAccount implements Accountable {
-    private int balance = 0;
-
-    public void add(int quantity) {
-        balance += quantity;
-    }
-    public void sub(int quantity) {
-        balance -= quantity;
-    }
-    public int balance() {
-        return balance;
-    }
-}
+class CoinsAccount extends Accountable {}
+class BuildingAccount extends Accountable {}
 
 
 public class Transfer {
