@@ -10,7 +10,7 @@ abstract class Action {
 }
 
 
-// mover.on(board).take(building.at(2,3)).stashItInto(storage)
+// mover.on(board.at(2,3)).take(building).stashItInto(storage)
 class StorageMover {
     private int x;
     private int y;
@@ -23,6 +23,7 @@ class StorageMover {
     public void on(gamecommons.engine.Board board) {}
     public void take(Boardable Item, int x, int y) {}
     public void stashItInto(StoreHouse storage) {}
+    public void trashIt() {}
 
     public void moveIt() {
         board.remove(item.at(x,y), new Point(x, y));
@@ -33,7 +34,6 @@ class StorageMover {
 
 class MoveIntoStorage extends Action {
     private StorageMover mover;
-
     public MoveIntoStorage(StorageMover m) {
         this.mover = m;
     }
