@@ -22,6 +22,12 @@ class ExampleActionFirst {
         public void on(Player p) { p.consume(v); }
     }
 
+    class RunAction implements IPlayerAction {
+        Transaction t;
+        RunAction(Transaction t) { this.t = t; }
+        public void on(Player p) { p.run(t); }
+    }
+
     class Actions {
         RewardAction reward(Valuable v) {
             return new RewardAction(v);
@@ -38,7 +44,7 @@ class ExampleActionFirst {
         void take(Valuable v) {}
 
         IPlayerAction run(Transaction t) {
-            return this;
+            return new RunAction(t);
         }
     }
 

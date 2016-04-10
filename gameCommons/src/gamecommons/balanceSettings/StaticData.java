@@ -1,13 +1,15 @@
 package gamecommons.balanceSettings;
 
+import java.sql.ResultSet;
 import java.util.HashMap;
+
 import gamecommons.system.Trace;
 import gamecommons.system.DataStore;
 
 
-public class StaticDataCache {}
+class StaticDataCache {}
 
-public class HashMapCache extends StaticDataCache {
+class HashMapCache extends StaticDataCache {
 	public HashMap<Integer,DataItemLevel> cached = new HashMap<Integer,DataItemLevel>();
 }
 

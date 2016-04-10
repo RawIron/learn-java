@@ -1,6 +1,3 @@
-/*
- */
-
 package gamecommons.engine;
 
 import java.util.LinkedList;
@@ -85,4 +82,3 @@ public class Board {
         return board[x][y];
     }
 }
-

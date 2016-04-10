@@ -1,4 +1,3 @@
-
 package gamecommons.engine;
 
 import junit.framework.TestCase;
