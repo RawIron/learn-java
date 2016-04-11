@@ -9,28 +9,31 @@ public class DottedBoardTest extends TestCase {
         Boardable building = new Building();
         DottedBoard board = new DottedBoard();
         board.place(building);
-        assertEquals(board.on(0,0), Board.empty);
+        assertEquals(Board.empty, board.on(0, 0));
     }
+
     public final void test_dottedPlaceBuilding() {
         Boardable building = new Building();
         DottedBoard board = new DottedBoard();
-        board.place(building).at(0,0);
-        assertEquals(board.on(0,0), building);
+        board.place(building).at(0, 0);
+        assertEquals(building, board.on(0, 0));
     }
+
     public final void test_dottedMoveBuilding() {
         Boardable building = new Building();
         DottedBoard board = new DottedBoard();
-        board.place(building).at(0,0);
-        board.move(building).from(0,0).to(1,1);
-        assertEquals(board.on(0,0), Board.empty);
-        assertEquals(board.on(1,1), building);
+        board.place(building).at(0, 0);
+        board.move(building).from(0, 0).to(1, 1);
+        assertEquals(board.on(0, 0), Board.empty);
+        assertEquals(board.on(1, 1), building);
     }
+
     public final void test_dottedRemoveBuilding() {
         Boardable building = new Building();
         DottedBoard board = new DottedBoard();
-        board.place(building).at(1,1);
-        board.remove(building).at(1,1);
-        assertEquals(board.on(1,1), Board.empty);
+        board.place(building).at(1, 1);
+        board.remove(building).at(1, 1);
+        assertEquals(board.on(1, 1), Board.empty);
     }
 
 }

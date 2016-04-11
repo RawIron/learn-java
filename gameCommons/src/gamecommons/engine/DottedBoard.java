@@ -1,90 +1,51 @@
 package gamecommons.engine;
 
 /**
- board.place(building).at(2,3)
- board.at(2,3).place(building)
-
- board.move(building).from(2,3).to(4,5)
- board.move(building, from, to)
-
- move.is(place(building).at(2,3))
- mover.make(move)
+ * board.place(building).at(2,3)
+ * board.at(2,3).place(building)
+ * board.place(building, at)
+ * <p>
+ * board.move(building).from(2,3).to(4,5)
+ * board.move(building, from, to)
+ * <p>
+ * move.is(place(building).at(2,3))
+ * mover.make(move)
  */
 
 
 import java.util.LinkedList;
 
 
-abstract class BoardCommand {
-    protected LinkedList<String> words = new LinkedList<String>();
-    protected String name;
-    protected String wordSearch;
+class BoardCommand
+{
+    protected LinkedList<String> wordsNeeded = new LinkedList<String>();
+    protected LinkedList<String> wordsFound = new LinkedList<String>();
     private Runner command;
 
-    public String name() { return name; }
-    public String words() { return wordSearch; }
-    public Runner runner() {
+    public void setRunner(Runner command) {
+        this.command = command;
+        this.wordsNeeded.clear();
+        for (String word : command.getKeywords().split(" ")) {
+            wordsNeeded.add(word);
+        }
+    }
+
+    public Runner getRunner() {
         return this.command;
     }
 
-    public BoardCommand(Runner command) {
-        this.command = command;
-        init();
-    }
-
-    public abstract void init();
-
     public boolean isComplete() {
-        return (words.isEmpty());
+        if (wordsNeeded.isEmpty()) {
+            return false;
+        } else {
+            return wordsFound.containsAll(wordsNeeded);
+        }
     }
 
     public void found(String word) {
-        if (words.contains(word)) {
-            words.remove(word);
+        if (!wordsFound.contains(word)) {
+            wordsFound.add(word);
         }
-    }
-}
-
-class BoardPlaceCommand extends BoardCommand {
-    public BoardPlaceCommand(BoardPlace command) {
-        super(command);
-    }
-
-    @Override
-    public void init() {
-        words.add("place");
-        words.add("at");
-        name = "place";
-        wordSearch = "place at";
-    }
-}
-
-class BoardRemoveCommand extends BoardCommand {
-    public BoardRemoveCommand(BoardRemove command) {
-        super(command);
-    }
-
-    @Override
-    public void init() {
-        words.add("remove");
-        words.add("at");
-        name = "remove";
-        wordSearch = "remove at";
-    }
-}
-
-class BoardMoveCommand extends BoardCommand {
-    public BoardMoveCommand(BoardMove command) {
-        super(command);
-    }
-
-    @Override
-    public void init() {
-        words.add("move");
-        words.add("from");
-        words.add("to");
-        name = "move";
-        wordSearch = "move from to";
     }
 }
 
@@ -94,12 +55,17 @@ class BoardRemove implements Runner {
     private Boardable piece;
     private Point at;
 
-    public Runner createRunner(DottedBoard board) {
+    public String getKeywords() {
+        return "remove at";
+    }
+
+    public Runner create(DottedBoard board) {
         this.board = board;
         this.piece = board.piece;
         this.at = board.at;
         return this;
     }
+
     public void run() {
         board.remove(piece, at);
     }
@@ -110,12 +76,17 @@ class BoardPlace implements Runner {
     private Boardable piece;
     private Point at;
 
-    public Runner createRunner(DottedBoard board) {
+    public String getKeywords() {
+        return "place at";
+    }
+
+    public Runner create(DottedBoard board) {
         this.board = board;
         this.piece = board.piece;
         this.at = board.at;
         return this;
     }
+
     public void run() {
         board.place(piece, at);
     }
@@ -127,7 +98,11 @@ class BoardMove implements Runner {
     private Point from;
     private Point to;
 
-    public Runner createRunner(DottedBoard board) {
+    public String getKeywords() {
+        return "move from to";
+    }
+
+    public Runner create(DottedBoard board) {
         this.board = board;
         this.piece = board.piece;
         this.from = board.from;
@@ -140,70 +115,66 @@ class BoardMove implements Runner {
     }
 }
 
-class CommandMatcher {
-
-    public CommandMatcher() {}
-    public void got(String word) {
-    }
-
-    public boolean foundMatch() {
-        return false;
-    }
-}
 
 interface Runner {
-    public void run();
+    Runner create(DottedBoard board);
+    void run();
+    String getKeywords();
 }
 
 
-public class DottedBoard extends Board
-{
+public class DottedBoard extends Board {
     public Point to = null;
     public Point from = null;
     public Point at = null;
 
     public Boardable piece = null;
-    public BoardCommand command = null;
-    public Runner runner = null;
+    public BoardCommand command = new BoardCommand();
 
     public DottedBoard remove(Boardable piece) {
+        this.command.setRunner(new BoardRemove());
+        this.command.found("remove");
         this.piece = piece;
-        this.command = new BoardRemoveCommand(new BoardRemove());
         return this;
     }
 
     public DottedBoard move(Boardable piece) {
+        this.command.setRunner(new BoardMove());
+        this.command.found("move");
         this.piece = piece;
-        this.command = new BoardMoveCommand(new BoardMove());
         return this;
     }
 
     public DottedBoard place(Boardable piece) {
+        this.command.setRunner(new BoardPlace());
+        this.command.found("place");
         this.piece = piece;
-        this.command = new BoardPlaceCommand(new BoardPlace());
         return this;
     }
 
     public DottedBoard at(int x, int y) {
+        this.command.found("at");
         this.at = new Point(x, y);
         if (command.isComplete()) {
-            runner.run();
+            command.getRunner().create(this).run();
         }
         return this;
     }
 
     public DottedBoard from(int x, int y) {
+        this.command.found("from");
         this.from = new Point(x, y);
         if (command.isComplete()) {
-            runner.run();
+            command.getRunner().create(this).run();
         }
         return this;
     }
 
     public DottedBoard to(int x, int y) {
+        this.command.found("to");
         this.to = new Point(x, y);
         if (command.isComplete()) {
-            runner.run();
+            command.getRunner().create(this).run();
         }
         return this;
     }
