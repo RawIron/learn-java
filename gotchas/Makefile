@@ -1,9 +1,8 @@
-my_home := $$HOME/workspace_java
-package_home := $(my_home)/scratch-java
-package := gotchas
+package_home := $$HOME/workspace/learn-java
+lib := $(package_home)/lib
 
-jc := javac -classpath "$(my_home)/junit.jar:$(my_home)/mockito.jar:$(package_home)"
-tr := java -classpath "$(my_home)/junit.jar:$(my_home)/mockito.jar:$(package_home)" junit.textui.TestRunner
+jc := javac -classpath "$(lib)/junit.jar:$(lib)/mockito.jar:$(package_home)"
+tr := java  -classpath "$(lib)/junit.jar:$(lib)/mockito.jar:$(package_home)" junit.textui.TestRunner
 
 junit.jar:
 mockito.jar:

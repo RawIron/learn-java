@@ -51,30 +51,20 @@ to run the `gotchas` simply run the tests.
 ### Makefile
 
 #### Setup
-change the absolute path of `my_home` in the `Makefile`.
-it has to be the directory in which you executed the `git clone` command.
+change the absolute path of `package_home` in the `Makefile`.
 
 for example after you cloned the repo your directory structure looks like this:
 ```
-/home/my-user-account/projects/scratch-java
+/home/my-user-account/projects/learn-java
 ```
 
-set the `my_home` in the `Makefile` to
+set the `package_home` in the `Makefile` to
 ```
-/home/my-user-account/projects
-```
-
-copy the required `junit.jar` and `mockito.jar` files into the `my_home` folder. Download a specific version and symlink.
-```
-junit-4.8.2.jar
-junit.jar -> junit-4.8.2.jar
-
-mockito-all-1.9.5.jar
-mockito.jar -> mockito-all-1.9.5.jar
+/home/my-user-account/projects/learn-java
 ```
 
 #### Add one
-copy the template `ATest.java`.
+copy the template `ATest.java` to `YourNewTest.java` for example.
 
 add two lines to the Makefile
 ```make
