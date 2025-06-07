@@ -1,13 +1,14 @@
 import java.awt.*;
+import java.awt.image.BufferStrategy;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 
-public class RoadFrame extends Frame implements Runnable {
+public class RoadFrame extends Frame {
 
     public RoadFrame() {
-        setVisible(true);
         setSize(800, 200);
+        setVisible(true);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -35,10 +36,14 @@ public class RoadFrame extends Frame implements Runnable {
         p.add(new Label(""));
 
         canvas = new RoadCanvas();
+        canvas.setBackground(Color.black);
 
         setLayout(new BorderLayout());
         add("North", p);
         add("Center", canvas);
+
+        canvas.createBufferStrategy(2);
+        buffer = canvas.getBufferStrategy();
     }
 
     public double getSlowdown() {
@@ -51,27 +56,23 @@ public class RoadFrame extends Frame implements Runnable {
     }
 
     public void run() {
-        for (; ; ) {
-            canvas.update(getSlowdown(), getArrival());
+        for ( ;; ) {
+            canvas.update(buffer.getDrawGraphics(), getSlowdown(), getArrival());
+            buffer.show();
             try {
                 Thread.sleep(300);
-            } catch (InterruptedException e) {
-            }
+            } catch (InterruptedException e) {}
         }
-    }
-
-    public void start() {
-        runner = new Thread(this);
-        runner.start();
-    }
+     }
 
     public static void main(String[] args) {
         RoadFrame f = new RoadFrame();
         f.init();
-        f.start();
-    }
+        f.run();
+   }
 
     private RoadCanvas canvas;
+    private BufferStrategy buffer;
     private Scrollbar slowdown;
     private Scrollbar arrival;
     private Thread runner;
@@ -84,28 +85,18 @@ class RoadCanvas extends Canvas {
         row = 29;
     }
 
-    public void update(double slowdown, double arrival) {
-        //xsize = getSize().width;
-        //ysize = getSize().height;
-        xsize = 800;
-        ysize = 200;
-        buffer = createImage(xsize, ysize);
-        Graphics bg = buffer.getGraphics();
+    public void update(Graphics g, double slowdown, double arrival) {
+        //xsize = getWidth();
+        //ysize = getHeight;
+        freeway.clear(g, row, XDOTDIST, DOTSIZE);
         freeway.update(slowdown, arrival);
-        freeway.paint(bg, row, XDOTDIST, DOTSIZE);
-        bg.dispose();
-        repaint();
-    }
-
-    public void paint(Graphics g) {
-        if (buffer != null)
-            g.drawImage(buffer, 0, 0, null);
+        freeway.paint(g, row, XDOTDIST, DOTSIZE);
+        g.dispose();
     }
 
     private final int DOTSIZE = 4;
     private final int XDOTDIST = 5;
     private Road freeway;
-    private Image buffer;
     private int row;
     private int xsize;
     private int ysize;
@@ -118,8 +109,8 @@ class Road {
     public Road() {
         speed = new int[LENGTH];
         colors = new Color[LENGTH];
-        for (int i = 0; i < LENGTH; i++) speed[i] = EMPTY;
-	count = 0;
+        count = 0;
+        for (int i = 0; i < LENGTH; i++) { speed[i] = EMPTY; }
     }
 
     public void update(double prob_slowdown, double prob_create) {
@@ -168,7 +159,16 @@ class Road {
         // new vehicle has random speed
         if (Math.random() <= prob_create && speed[0] == EMPTY) {
             speed[0] = (int) (5.99 * Math.random());
-            colors[0] = ++count % 10 == 0 ? Color.red : Color.black;
+            colors[0] = ++count % 10 == 0 ? Color.red : Color.blue;
+        }
+    }
+
+    public void clear(Graphics g, int row, int dotdist, int dotsize) {
+        for (int i = 0; i < LENGTH; i++) {
+            if (speed[i] >= 0) {
+                g.setColor(Color.black);
+                g.fillRect(i * dotdist, row, dotsize, dotsize);
+            }
         }
     }
 

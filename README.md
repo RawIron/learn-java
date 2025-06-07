@@ -94,3 +94,28 @@ remove all compiled and temp files
 ```bash
 make clean
 ```
+
+## trafficSim
+a tiny bit of AWT programming
+
+### Makefile
+
+compile `RoadFrame`
+```bash
+make RoadFrame
+```
+
+run the app
+```bash
+make run
+```
+
+run the app on Sway
+```bash
+make runway
+```
+
+remove all compiled and temp files
+```bash
+make clean
+```
