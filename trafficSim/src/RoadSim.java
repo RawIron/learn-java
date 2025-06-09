@@ -2,6 +2,8 @@ import java.awt.*;
 import java.awt.image.BufferStrategy;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.AdjustmentEvent;
 
 
 public class RoadSim {
@@ -24,19 +26,33 @@ public class RoadSim {
         slowdown = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 100);
         slowdown.setUnitIncrement(10);
         slowdown.setValue(5);
+        Label slowdownLabel = new Label();
+        slowdownLabel.setText("Slowdown  " + slowdown.getValue());
+        slowdown.addAdjustmentListener(new AdjustmentListener() {
+            @Override
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                slowdownLabel.setText("Slowdown  " + slowdown.getValue());
+            }
+        });
 
         arrival = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 100);
         arrival.setUnitIncrement(10);
         arrival.setValue(10);
+        Label arrivalLabel = new Label();
+        arrivalLabel.setText("Arrival  " + arrival.getValue());
+        arrival.addAdjustmentListener(new AdjustmentListener() {
+            @Override
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                arrivalLabel.setText("Arrival  " + arrival.getValue());
+            }
+        });
 
         Panel p = new Panel();
-        p.setLayout(new GridLayout(1, 6));
-        p.add(new Label("Slowdown"));
+        p.setLayout(new GridLayout(1, 4));
+        p.add(slowdownLabel);
         p.add(slowdown);
-        p.add(new Label(""));
-        p.add(new Label("Arrival"));
+        p.add(arrivalLabel);
         p.add(arrival);
-        p.add(new Label(""));
 
         canvas = new Canvas();
         canvas.setBackground(Color.black);
