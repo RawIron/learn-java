@@ -65,25 +65,24 @@ public class RoadSim {
         timeLabel.setText("Time  0");
         distanceLabel = new Label();
         distanceLabel.setText("Distance  0");
-        minDurationLabel = new Label();
-        minDurationLabel.setText("MinDuration  0");
-        maxDurationLabel = new Label();
-        maxDurationLabel.setText("MaxDuration  0");
+        minLatencyLabel = new Label();
+        minLatencyLabel.setText("MinLatency  0");
+        maxLatencyLabel = new Label();
+        maxLatencyLabel.setText("MaxLatency  0");
+        avgLatencyLabel = new Label();
+        avgLatencyLabel.setText("AvgLatency  0");
         throughputLabel = new Label();
         throughputLabel.setText("Throughput  0");
-        latencyLabel = new Label();
-        latencyLabel.setText("Latency  0");
 
         Panel metricPanel = new Panel();
         metricPanel.setLayout(new GridLayout(3, 3));
         metricPanel.add(countLabel);
         metricPanel.add(timeLabel);
         metricPanel.add(distanceLabel);
-        metricPanel.add(minDurationLabel);
-        metricPanel.add(maxDurationLabel);
-        metricPanel.add(new Label(""));
+        metricPanel.add(minLatencyLabel);
+        metricPanel.add(maxLatencyLabel);
+        metricPanel.add(avgLatencyLabel);
         metricPanel.add(throughputLabel);
-        metricPanel.add(latencyLabel);
 
         frame.setLayout(new BorderLayout());
         frame.add("North", parameterPanel);
@@ -110,10 +109,10 @@ public class RoadSim {
             countLabel.setText("Count  " + freeway.count);
             timeLabel.setText("Time  " + freeway.ticks);
             distanceLabel.setText("Distance  " + freeway.distance);
-            minDurationLabel.setText("MinDuration  " + freeway.minDuration);
-            maxDurationLabel.setText("MaxDuration  " + freeway.maxDuration);
+            minLatencyLabel.setText("MinLatency  " + freeway.minLatency);
+            maxLatencyLabel.setText("MaxLatency  " + freeway.maxLatency);
+            avgLatencyLabel.setText("AvgLatency  " + freeway.avgLatency);
             throughputLabel.setText("Throughput  " + freeway.throughput);
-            latencyLabel.setText("Latency  " + freeway.latency);
 
             try {
                 Thread.sleep(300);
@@ -134,10 +133,10 @@ public class RoadSim {
     private Label countLabel;
     private Label timeLabel;
     private Label distanceLabel;
-    private Label minDurationLabel;
-    private Label maxDurationLabel;
+    private Label minLatencyLabel;
+    private Label maxLatencyLabel;
+    private Label avgLatencyLabel;
     private Label throughputLabel;
-    private Label latencyLabel;
     private static final int DOTSIZE = 4;
     private static final int XDOTDIST = 5;
     private static final int ROW = 29;
@@ -147,14 +146,14 @@ public class RoadSim {
 
 class Road {
     private class Car {
-        public Car(Color _color, int _speed, int _duration) {
+        public Car(Color _color, int _speed, int _latency) {
             color = _color;
             speed = _speed;
-            duration = _duration;
+            latency = _latency;
         }
         public Color color;
         public int speed;
-        public int duration;
+        public int latency;
     }
 
     public Road() {
@@ -162,12 +161,14 @@ class Road {
         for (int i = 0; i < LENGTH; i++) { speed[i] = null; }
 
         count = 0;
+        receivedCount = 0;
         ticks = 0;
         distance = LENGTH;
-        maxDuration = 0;
-        minDuration = LENGTH;
+        maxLatency = 0;
+        minLatency = LENGTH;
+        avgLatency = 0;
+        sumLatency = 0;
         throughput = 0;
-        latency = 0;
     }
 
     public void update(double probabilitySlowdown, double probabilityArrival) {
@@ -179,7 +180,7 @@ class Road {
 
         while (i < LENGTH) {
             Car driveCar = speed[i];
-            driveCar.duration++;
+            driveCar.latency++;
             // randomly adjust speed of vehicle at current location
             if (Math.random() <= probabilitySlowdown && driveCar.speed > 0)
                 driveCar.speed--;
@@ -206,12 +207,15 @@ class Road {
                     speed[ni] = driveCar;
                 }
                 else {
-                    if (driveCar.duration > maxDuration) {
-                        maxDuration = driveCar.duration;
+                    if (driveCar.latency > maxLatency) {
+                        maxLatency = driveCar.latency;
                     }
-                    if (driveCar.duration < minDuration) {
-                        minDuration = driveCar.duration;
+                    if (driveCar.latency < minLatency) {
+                        minLatency = driveCar.latency;
                     }
+                    sumLatency += driveCar.latency;
+                    receivedCount++;
+                    avgLatency = sumLatency / receivedCount;
                     driveCar = null;
                 }
                 speed[i] = null;
@@ -256,11 +260,13 @@ class Road {
     private Car[] speed;
 
     public int count;
+    public int receivedCount;
     public int ticks;
     public int distance;
-    public int minDuration;
-    public int maxDuration;
+    public int minLatency;
+    public int maxLatency;
+    public int avgLatency;
+    public int sumLatency;
     public int throughput;
-    public int latency;
 }
 
