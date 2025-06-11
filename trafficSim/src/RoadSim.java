@@ -1,3 +1,5 @@
+import java.util.LinkedList;
+import java.util.Queue;
 import java.awt.*;
 import java.awt.image.BufferStrategy;
 import java.awt.event.WindowAdapter;
@@ -157,8 +159,8 @@ class Road {
     }
 
     public Road() {
-        speed = new Car[LENGTH];
-        for (int i = 0; i < LENGTH; i++) { speed[i] = null; }
+        road = new Car[LENGTH];
+        for (int i = 0; i < LENGTH; i++) { road[i] = null; }
 
         count = 0;
         receivedCount = 0;
@@ -169,17 +171,19 @@ class Road {
         avgLatency = 0;
         sumLatency = 0;
         throughput = 0;
+        batchBegin = true;
+        timers = new LinkedList<>();
     }
 
     public void update(double probabilitySlowdown, double probabilityArrival) {
         int i = 0;
 
         // skip location with no vehicle
-        while (i < LENGTH && speed[i] == null)
+        while (i < LENGTH && road[i] == null)
             i++;
 
         while (i < LENGTH) {
-            Car driveCar = speed[i];
+            Car driveCar = road[i];
             driveCar.latency++;
             // randomly adjust speed of vehicle at current location
             if (Math.random() <= probabilitySlowdown && driveCar.speed > 0)
@@ -191,7 +195,7 @@ class Road {
             // depending on speed of vehicle in front
             int inext = i + 1;
             // skip location with no vehicle
-            while (inext < LENGTH && speed[inext] == null)
+            while (inext < LENGTH && road[inext] == null)
                 inext++;
             // in case there is another vehicle ..
             if (inext < LENGTH) {
@@ -204,9 +208,10 @@ class Road {
             if (driveCar.speed > 0) {
                 if (i + driveCar.speed < LENGTH) {
                     int ni = i + driveCar.speed;
-                    speed[ni] = driveCar;
+                    road[ni] = driveCar;
                 }
                 else {
+                    receivedCount++;
                     if (driveCar.latency > maxLatency) {
                         maxLatency = driveCar.latency;
                     }
@@ -214,11 +219,13 @@ class Road {
                         minLatency = driveCar.latency;
                     }
                     sumLatency += driveCar.latency;
-                    receivedCount++;
                     avgLatency = sumLatency / receivedCount;
+                    if (driveCar.color == Color.red) {
+                        throughput = BATCH * 100 / (ticks - timers.poll() + 1);
+                    }
                     driveCar = null;
                 }
-                speed[i] = null;
+                road[i] = null;
             }
 
             // continue with next vehicle
@@ -227,9 +234,18 @@ class Road {
 
         // randomly decide whether a new vehicle arrives
         // new vehicle has random speed
-        if (Math.random() <= probabilityArrival && speed[0] == null) {
-            speed[0] = new Car(
-                ++count % 10 == 0 ? Color.red : Color.blue,
+        if (Math.random() <= probabilityArrival && road[0] == null) {
+            if (batchBegin) {
+                timers.add(ticks);
+                batchBegin = false;
+            }
+            Color carColor = Color.blue;
+            if (++count % BATCH == 0) {
+                batchBegin = true;
+                carColor = Color.red;
+            }
+            road[0] = new Car(
+                carColor,
                 (int) (5.99 * Math.random()),
                 1);
         }
@@ -239,7 +255,7 @@ class Road {
 
     public void clear(Graphics g, int row, int dotdist, int dotsize) {
         for (int i = 0; i < LENGTH; i++) {
-            if (speed[i] != null) {
+            if (road[i] != null) {
                 g.setColor(Color.black);
                 g.fillRect(i * dotdist, row, dotsize, dotsize);
             }
@@ -248,8 +264,8 @@ class Road {
 
     public void paint(Graphics g, int row, int dotdist, int dotsize) {
         for (int i = 0; i < LENGTH; i++) {
-            if (speed[i] != null) {
-                g.setColor(speed[i].color);
+            if (road[i] != null) {
+                g.setColor(road[i].color);
                 g.fillRect(i * dotdist, row, dotsize, dotsize);
             }
         }
@@ -257,16 +273,19 @@ class Road {
 
     private final int LENGTH = 160;
     private final int MAXSPEED = 5;
-    private Car[] speed;
+    private final int BATCH = 10;
+    private Car[] road;
 
-    public int count;
-    public int receivedCount;
+    public int count;              // cars left at location
+    public int receivedCount;      // cars arrived at destination
     public int ticks;
     public int distance;
     public int minLatency;
     public int maxLatency;
     public int avgLatency;
-    public int sumLatency;
-    public int throughput;
+    private int sumLatency;
+    public int throughput;         // cars traveled the whole distance per 100 ticks
+    private boolean batchBegin;    // flag to start a timer
+    private Queue<Integer> timers; // push timer into a queue
 }
 
