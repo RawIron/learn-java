@@ -141,7 +141,7 @@ public class RoadSim {
     private Label throughputLabel;
     private static final int DOTSIZE = 4;
     private static final int XDOTDIST = 5;
-    private static final int ROW = 29;
+    private static final int ROW = 44;
     private Road freeway;
 }
 
@@ -151,11 +151,13 @@ class Road {
         public Car(Color _color, int _speed, int _latency) {
             color = _color;
             speed = _speed;
+            speedChange = 0;
             latency = _latency;
         }
-        public Color color;
-        public int speed;
-        public int latency;
+        public Color color;       // used to mark begin and end of measurements for example
+        public int speed;         // actual speed
+        public int speedChange;   // change in speed from previous actual speed
+        public int latency;       // traveltime
     }
 
     public Road() {
@@ -171,7 +173,7 @@ class Road {
         avgLatency = 0;
         sumLatency = 0;
         throughput = 0;
-        batchBegin = true;
+        timerFlag = true;
         timers = new LinkedList<>();
     }
 
@@ -184,12 +186,18 @@ class Road {
 
         while (i < LENGTH) {
             Car driveCar = road[i];
+            driveCar.speedChange = 0;
             driveCar.latency++;
+
             // randomly adjust speed of vehicle at current location
-            if (Math.random() <= probabilitySlowdown && driveCar.speed > 0)
+            if (Math.random() <= probabilitySlowdown && driveCar.speed > 0) {
                 driveCar.speed--;
-            else if (driveCar.speed < MAXSPEED)
+                driveCar.speedChange = -1;
+            }
+            else if (driveCar.speed < MAXSPEED) {
                 driveCar.speed++;
+                driveCar.speedChange = 1;
+            }
 
             // reduce speed of vehicle at current location
             // depending on speed of vehicle in front
@@ -200,8 +208,10 @@ class Road {
             // in case there is another vehicle ..
             if (inext < LENGTH) {
                 // reduce speed to avoid a crash
-                if (driveCar.speed >= inext - i)
+                if (driveCar.speed >= inext - i) {
+                    driveCar.speedChange -= driveCar.speed - (inext - i - 1);
                     driveCar.speed = inext - i - 1;
+                }
             }
 
             // move vehicle to new location
@@ -235,13 +245,13 @@ class Road {
         // randomly decide whether a new vehicle arrives
         // new vehicle has random speed
         if (Math.random() <= probabilityArrival && road[0] == null) {
-            if (batchBegin) {
+            if (timerFlag) {
                 timers.add(ticks);
-                batchBegin = false;
+                timerFlag = false;
             }
             Color carColor = Color.blue;
             if (++count % BATCH == 0) {
-                batchBegin = true;
+                timerFlag = true;
                 carColor = Color.red;
             }
             road[0] = new Car(
@@ -265,7 +275,21 @@ class Road {
     public void paint(Graphics g, int row, int dotdist, int dotsize) {
         for (int i = 0; i < LENGTH; i++) {
             if (road[i] != null) {
-                g.setColor(road[i].color);
+                if (road[i].speedChange < 0 && road[i].color == Color.blue) {
+                    g.setColor(Color.yellow);
+                }
+                else if (road[i].speedChange > 0 && road[i].color == Color.blue) {
+                    g.setColor(Color.green);
+                }
+                else if (road[i].speedChange < 0 && road[i].color == Color.red) {
+                    g.setColor(Color.orange);
+                }
+                else if (road[i].speedChange > 0 && road[i].color == Color.red) {
+                    g.setColor(Color.pink);
+                }
+                else {
+                    g.setColor(road[i].color);
+                }
                 g.fillRect(i * dotdist, row, dotsize, dotsize);
             }
         }
@@ -276,16 +300,16 @@ class Road {
     private final int BATCH = 10;
     private Car[] road;
 
-    public int count;              // cars left at location
+    public int count;              // cars left from departure
     public int receivedCount;      // cars arrived at destination
-    public int ticks;
+    public int ticks;              // 1 tick := all cars on the road have been moved
     public int distance;
     public int minLatency;
     public int maxLatency;
     public int avgLatency;
     private int sumLatency;
     public int throughput;         // cars traveled the whole distance per 100 ticks
-    private boolean batchBegin;    // flag to start a timer
+    private boolean timerFlag;     // true := start a timer
     private Queue<Integer> timers; // push timer into a queue
 }
 
