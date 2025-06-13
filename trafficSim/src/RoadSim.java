@@ -142,24 +142,85 @@ public class RoadSim {
     private static final int DOTSIZE = 4;
     private static final int XDOTDIST = 5;
     private static final int ROW = 44;
+
     private Road freeway;
 }
 
 
-class Road {
-    private class Car {
-        public Car(Color _color, int _speed, int _latency) {
-            color = _color;
-            speed = _speed;
-            speedChange = 0;
-            latency = _latency;
+interface Vehicle {
+    int slowdown(int decrement);
+    int accelerate(int increment);
+    int elapsed(int increment);
+    Color showColor();
+}
+
+
+class Car implements Vehicle {
+    public static Car create(String category) {
+        switch(category) {
+        case "regular":
+            return new Car(category, Color.blue, Color.yellow, Color.green);
+        case "pacer" :
+            return new Car(category, Color.red, Color.orange, Color.pink);
         }
-        public Color color;       // used to mark begin and end of measurements for example
-        public int speed;         // actual speed
-        public int speedChange;   // change in speed from previous actual speed
-        public int latency;       // traveltime
+        return null;
     }
 
+    private Car(String _called, Color _color, Color _slowerColor, Color _fasterColor) {
+        called = _called;
+        color = _color;
+        slowerColor = _slowerColor;
+        fasterColor = _fasterColor;
+        speed = 0;
+        speedChange = 0;
+        latency = 0;
+    }
+
+    public String called;
+    private Color color;       // used to mark begin and end of measurements for example
+    private Color slowerColor;       // color signals car is slowing down
+    private Color fasterColor;       // color signals car is accelerating
+    public int speed;         // actual speed
+    private int speedChange;   // change in speed from previous actual speed
+    public int latency;       // traveltime
+
+    @Override
+    public int slowdown(int decr) {
+        speed -= decr;
+        speedChange -= decr;
+        return speed;
+    }
+
+    @Override
+    public int accelerate(int incr) {
+        speed += incr;
+        speedChange += incr;
+        return speed;
+    }
+
+    @Override
+    public int elapsed(int incr) {
+        speedChange = 0;
+        latency += incr;
+        return latency;
+    }
+
+    @Override
+    public Color showColor() {
+        if (speedChange < 0) {
+            return slowerColor;
+        }
+        else if (speedChange > 0) {
+            return fasterColor;
+        }
+        else {
+            return color;
+        }
+    }
+}
+
+
+class Road {
     public Road() {
         road = new Car[LENGTH];
         for (int i = 0; i < LENGTH; i++) { road[i] = null; }
@@ -186,31 +247,26 @@ class Road {
 
         while (i < LENGTH) {
             Car driveCar = road[i];
-            driveCar.speedChange = 0;
-            driveCar.latency++;
+            driveCar.elapsed(1);
 
             // randomly adjust speed of vehicle at current location
             if (Math.random() <= probabilitySlowdown && driveCar.speed > 0) {
-                driveCar.speed--;
-                driveCar.speedChange = -1;
+                driveCar.slowdown(1);
             }
             else if (driveCar.speed < MAXSPEED) {
-                driveCar.speed++;
-                driveCar.speedChange = 1;
+                driveCar.accelerate(1);
             }
 
             // reduce speed of vehicle at current location
             // depending on speed of vehicle in front
             int inext = i + 1;
-            // skip location with no vehicle
             while (inext < LENGTH && road[inext] == null)
                 inext++;
             // in case there is another vehicle ..
             if (inext < LENGTH) {
                 // reduce speed to avoid a crash
                 if (driveCar.speed >= inext - i) {
-                    driveCar.speedChange -= driveCar.speed - (inext - i - 1);
-                    driveCar.speed = inext - i - 1;
+                    driveCar.slowdown( driveCar.speed - (inext - i - 1) );
                 }
             }
 
@@ -230,7 +286,7 @@ class Road {
                     }
                     sumLatency += driveCar.latency;
                     avgLatency = sumLatency / receivedCount;
-                    if (driveCar.color == Color.red) {
+                    if ( driveCar.called == "pacer" ) {
                         throughput = BATCH * 100 / (ticks - timers.poll() + 1);
                     }
                     driveCar = null;
@@ -249,15 +305,18 @@ class Road {
                 timers.add(ticks);
                 timerFlag = false;
             }
-            Color carColor = Color.blue;
+
+            Car newCar;
             if (++count % BATCH == 0) {
                 timerFlag = true;
-                carColor = Color.red;
+                newCar = Car.create("pacer");
             }
-            road[0] = new Car(
-                carColor,
-                (int) (5.99 * Math.random()),
-                1);
+            else {
+                newCar = Car.create("regular");
+            }
+            newCar.accelerate( (int) (5.99 * Math.random()) );
+            newCar.elapsed(1);
+            road[0] = newCar;
         }
 
         ++ticks;
@@ -275,22 +334,8 @@ class Road {
     public void paint(Graphics g, int row, int dotdist, int dotsize) {
         for (int i = 0; i < LENGTH; i++) {
             if (road[i] != null) {
-                if (road[i].speedChange < 0 && road[i].color == Color.blue) {
-                    g.setColor(Color.yellow);
-                }
-                else if (road[i].speedChange > 0 && road[i].color == Color.blue) {
-                    g.setColor(Color.green);
-                }
-                else if (road[i].speedChange < 0 && road[i].color == Color.red) {
-                    g.setColor(Color.orange);
-                }
-                else if (road[i].speedChange > 0 && road[i].color == Color.red) {
-                    g.setColor(Color.pink);
-                }
-                else {
-                    g.setColor(road[i].color);
-                }
-                g.fillRect(i * dotdist, row, dotsize, dotsize);
+                g.setColor( road[i].showColor() );
+                g.fillRect( i * dotdist, row, dotsize, dotsize );
             }
         }
     }
