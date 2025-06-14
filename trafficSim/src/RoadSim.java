@@ -96,15 +96,24 @@ public class RoadSim {
     }
 
     public void run() {
-        freeway = new Road();
+        Road freeway = new Road();
+
         for ( ;; ) {
             double probabilitySlowdown = 0.01 * slowdown.getValue();
             double probabilityArrival = 0.01 * arrival.getValue();
 
+            Move move = freeway.update(probabilitySlowdown, probabilityArrival);
+            if (move == null) {
+                continue;
+            }
+
             Graphics g = buffer.getDrawGraphics();
-            freeway.clear(g, ROW, XDOTDIST, DOTSIZE);
-            freeway.update(probabilitySlowdown, probabilityArrival);
-            freeway.paint(g, ROW, XDOTDIST, DOTSIZE);
+            g.setColor( Color.black );
+            g.fillRect( move.fromA * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
+            if ( move.item != null ) {
+                g.setColor( move.item.showColor() );
+                g.fillRect( move.toB * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
+            }
             g.dispose();
             buffer.show();
 
@@ -130,8 +139,13 @@ public class RoadSim {
 
     private Scrollbar slowdown;
     private Scrollbar arrival;
+
     private Canvas canvas;
     private BufferStrategy buffer;
+    private static final int DOTSIZE = 4;
+    private static final int XDOTDIST = 5;
+    private static final int ROW = 44;
+
     private Label countLabel;
     private Label timeLabel;
     private Label distanceLabel;
@@ -139,14 +153,32 @@ public class RoadSim {
     private Label maxLatencyLabel;
     private Label avgLatencyLabel;
     private Label throughputLabel;
-    private static final int DOTSIZE = 4;
-    private static final int XDOTDIST = 5;
-    private static final int ROW = 44;
-
-    private Road freeway;
 }
 
 
+/*
+ * skip move := null
+ * move a piece := (n, m, piece)
+ * erase a piece := (n, -1, piece)
+ * bring in a piece := (0, 0, piece)
+ */
+class Move {
+    public Move(int _from, int _to, Car _car) {
+        fromA = _from;
+        toB = _to;
+        item = _car;
+    }
+
+    public int fromA;   // item was there
+    public int toB;     // and is here now
+    public Car item;
+}
+
+
+/*
+ * no need for an interface at this point
+ * just added to practice the syntax
+ */
 interface Vehicle {
     int slowdown(int decrement);
     int accelerate(int increment);
@@ -155,6 +187,8 @@ interface Vehicle {
 }
 
 
+/*
+ */
 class Car implements Vehicle {
     public static Car create(String category) {
         switch(category) {
@@ -220,10 +254,15 @@ class Car implements Vehicle {
 }
 
 
+/*
+ */
 class Road {
+
     public Road() {
         road = new Car[LENGTH];
         for (int i = 0; i < LENGTH; i++) { road[i] = null; }
+
+        loc = 0;
 
         count = 0;
         receivedCount = 0;
@@ -238,15 +277,15 @@ class Road {
         timers = new LinkedList<>();
     }
 
-    public void update(double probabilitySlowdown, double probabilityArrival) {
-        int i = 0;
+    public Move update(double probabilitySlowdown, double probabilityArrival) {
+        Move move = null;
 
         // skip location with no vehicle
-        while (i < LENGTH && road[i] == null)
-            i++;
+        while (loc < LENGTH && road[loc] == null)
+            loc++;
 
-        while (i < LENGTH) {
-            Car driveCar = road[i];
+        if (loc < LENGTH) {
+            Car driveCar = road[loc];
             driveCar.elapsed(1);
 
             // randomly adjust speed of vehicle at current location
@@ -259,22 +298,24 @@ class Road {
 
             // reduce speed of vehicle at current location
             // depending on speed of vehicle in front
-            int inext = i + 1;
+            int inext = loc + 1;
             while (inext < LENGTH && road[inext] == null)
                 inext++;
             // in case there is another vehicle ..
             if (inext < LENGTH) {
                 // reduce speed to avoid a crash
-                if (driveCar.speed >= inext - i) {
-                    driveCar.slowdown( driveCar.speed - (inext - i - 1) );
+                if (driveCar.speed >= inext - loc) {
+                    driveCar.slowdown( driveCar.speed - (inext - loc - 1) );
                 }
             }
 
             // move vehicle to new location
             if (driveCar.speed > 0) {
-                if (i + driveCar.speed < LENGTH) {
-                    int ni = i + driveCar.speed;
-                    road[ni] = driveCar;
+                if (loc + driveCar.speed < LENGTH) {
+                    int nloc = loc + driveCar.speed;
+                    road[nloc] = driveCar;
+
+                    move = new Move( loc, nloc, road[nloc] );
                 }
                 else {
                     receivedCount++;
@@ -290,60 +331,51 @@ class Road {
                         throughput = BATCH * 100 / (ticks - timers.poll() + 1);
                     }
                     driveCar = null;
+
+                    move = new Move( loc, -1, null );
                 }
-                road[i] = null;
+                road[loc] = null;
             }
 
             // continue with next vehicle
-            i = inext;
+            loc = inext;
+        }
+        else {
+            ++ticks;
+            loc = 0;
+            // randomly decide whether a new vehicle arrives
+            // new vehicle has random speed
+            if (Math.random() <= probabilityArrival && road[0] == null) {
+                ++count;
+
+                if (timerFlag) {
+                    timers.add(ticks);
+                    timerFlag = false;
+                }
+
+                Car newCar;
+                if (count % BATCH == 0) {
+                    timerFlag = true;
+                    newCar = Car.create("pacer");
+                }
+                else {
+                    newCar = Car.create("regular");
+                }
+                newCar.accelerate( (int) (5.99 * Math.random()) );
+                road[loc] = newCar;
+
+                move = new Move( loc, loc, road[loc] );
+            }
         }
 
-        // randomly decide whether a new vehicle arrives
-        // new vehicle has random speed
-        if (Math.random() <= probabilityArrival && road[0] == null) {
-            if (timerFlag) {
-                timers.add(ticks);
-                timerFlag = false;
-            }
-
-            Car newCar;
-            if (++count % BATCH == 0) {
-                timerFlag = true;
-                newCar = Car.create("pacer");
-            }
-            else {
-                newCar = Car.create("regular");
-            }
-            newCar.accelerate( (int) (5.99 * Math.random()) );
-            newCar.elapsed(1);
-            road[0] = newCar;
-        }
-
-        ++ticks;
-    }
-
-    public void clear(Graphics g, int row, int dotdist, int dotsize) {
-        for (int i = 0; i < LENGTH; i++) {
-            if (road[i] != null) {
-                g.setColor(Color.black);
-                g.fillRect(i * dotdist, row, dotsize, dotsize);
-            }
-        }
-    }
-
-    public void paint(Graphics g, int row, int dotdist, int dotsize) {
-        for (int i = 0; i < LENGTH; i++) {
-            if (road[i] != null) {
-                g.setColor( road[i].showColor() );
-                g.fillRect( i * dotdist, row, dotsize, dotsize );
-            }
-        }
+        return move;
     }
 
     private final int LENGTH = 160;
     private final int MAXSPEED = 5;
     private final int BATCH = 10;
     private Car[] road;
+    private int loc;
 
     public int count;              // cars left from departure
     public int receivedCount;      // cars arrived at destination
