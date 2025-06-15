@@ -13,18 +13,7 @@ public class RoadSim {
     public RoadSim() {
     }
 
-    public void init() {
-        Frame frame = new Frame();
-        frame.setSize(800, 200);
-        frame.setVisible(true);
-
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                System.exit(0);
-            }
-        });
-
+    private Panel createParameterPanel() {
         slowdown = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 100);
         slowdown.setUnitIncrement(10);
         slowdown.setValue(5);
@@ -51,16 +40,34 @@ public class RoadSim {
             }
         });
 
+        playback = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 600);
+        playback.setUnitIncrement(25);
+        playback.setValue(200);
+
+        Label playbackLabel = new Label();
+        playbackLabel.setText("Playback  " + playback.getValue());
+        playback.addAdjustmentListener(new AdjustmentListener() {
+            @Override
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                playbackLabel.setText("Playback  " + playback.getValue());
+            }
+        });
+
         Panel parameterPanel = new Panel();
-        parameterPanel.setLayout(new GridLayout(1, 4));
+        parameterPanel.setLayout(new GridLayout(2, 4));
         parameterPanel.add(slowdownLabel);
         parameterPanel.add(slowdown);
         parameterPanel.add(arrivalLabel);
         parameterPanel.add(arrival);
+        parameterPanel.add(playbackLabel);
+        parameterPanel.add(playback);
+        parameterPanel.add(new Label(""));
+        parameterPanel.add(new Label(""));
 
-        canvas = new Canvas();
-        canvas.setBackground(Color.black);
+        return parameterPanel;
+    }
 
+    private Panel createMetricPanel() {
         countLabel = new Label();
         countLabel.setText("Count  0");
         timeLabel = new Label();
@@ -85,6 +92,27 @@ public class RoadSim {
         metricPanel.add(maxLatencyLabel);
         metricPanel.add(avgLatencyLabel);
         metricPanel.add(throughputLabel);
+
+        return metricPanel;
+    }
+
+    public void guiInit() {
+        Frame frame = new Frame();
+        frame.setSize(800, 200);
+        frame.setVisible(true);
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });
+
+        Panel parameterPanel = createParameterPanel();
+        Panel metricPanel = createMetricPanel();
+
+        canvas = new Canvas();
+        canvas.setBackground(Color.black);
 
         frame.setLayout(new BorderLayout());
         frame.add("North", parameterPanel);
@@ -126,19 +154,20 @@ public class RoadSim {
             throughputLabel.setText("Throughput  " + freeway.throughput);
 
             try {
-                Thread.sleep(300);
+                Thread.sleep( playback.getValue() );
             } catch (InterruptedException e) {}
         }
      }
 
     public static void main(String[] args) {
         RoadSim sim = new RoadSim();
-        sim.init();
+        sim.guiInit();
         sim.run();
    }
 
     private Scrollbar slowdown;
     private Scrollbar arrival;
+    private Scrollbar playback;
 
     private Canvas canvas;
     private BufferStrategy buffer;
