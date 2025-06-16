@@ -10,91 +10,118 @@ import java.awt.event.AdjustmentEvent;
 
 public class RoadSim {
 
-    public RoadSim() {
+    public RoadSim() {}
+
+
+    private class ParameterPanel extends Panel {
+
+        public ParameterPanel() {
+            slowdown = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 100);
+            slowdown.setUnitIncrement(10);
+            slowdown.setValue(5);
+
+            Label slowdownLabel = new Label();
+            slowdownLabel.setText("Slowdown  " + slowdown.getValue());
+            slowdown.addAdjustmentListener(new AdjustmentListener() {
+                @Override
+                public void adjustmentValueChanged(AdjustmentEvent e) {
+                    slowdownLabel.setText("Slowdown  " + slowdown.getValue());
+                }
+            });
+
+            arrival = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 100);
+            arrival.setUnitIncrement(10);
+            arrival.setValue(10);
+
+            Label arrivalLabel = new Label();
+            arrivalLabel.setText("Arrival  " + arrival.getValue());
+            arrival.addAdjustmentListener(new AdjustmentListener() {
+                @Override
+                public void adjustmentValueChanged(AdjustmentEvent e) {
+                    arrivalLabel.setText("Arrival  " + arrival.getValue());
+                }
+            });
+
+            playback = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 600);
+            playback.setUnitIncrement(25);
+            playback.setValue(200);
+
+            Label playbackLabel = new Label();
+            playbackLabel.setText("Playback  " + playback.getValue());
+            playback.addAdjustmentListener(new AdjustmentListener() {
+                @Override
+                public void adjustmentValueChanged(AdjustmentEvent e) {
+                    playbackLabel.setText("Playback  " + playback.getValue());
+                }
+            });
+
+            setLayout(new GridLayout(2, 4));
+            add(slowdownLabel);
+            add(slowdown);
+            add(arrivalLabel);
+            add(arrival);
+            add(playbackLabel);
+            add(playback);
+            add(new Label(""));
+            add(new Label(""));
+        }
+
+        public int slowdown() { return slowdown.getValue(); }
+        public int arrival() { return arrival.getValue(); }
+        public int playback() { return playback.getValue(); }
+
+        private Scrollbar slowdown;
+        private Scrollbar arrival;
+        private Scrollbar playback;
     }
 
-    private Panel createParameterPanel() {
-        slowdown = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 100);
-        slowdown.setUnitIncrement(10);
-        slowdown.setValue(5);
 
-        Label slowdownLabel = new Label();
-        slowdownLabel.setText("Slowdown  " + slowdown.getValue());
-        slowdown.addAdjustmentListener(new AdjustmentListener() {
-            @Override
-            public void adjustmentValueChanged(AdjustmentEvent e) {
-                slowdownLabel.setText("Slowdown  " + slowdown.getValue());
-            }
-        });
+    private class MetricPanel extends Panel {
 
-        arrival = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 100);
-        arrival.setUnitIncrement(10);
-        arrival.setValue(10);
+        public MetricPanel() {
+            countLabel = new Label("Count  0");
+            timeLabel = new Label();
+            timeLabel.setText("Time  0");
+            distanceLabel = new Label();
+            distanceLabel.setText("Distance  0");
+            minLatencyLabel = new Label();
+            minLatencyLabel.setText("MinLatency  0");
+            maxLatencyLabel = new Label();
+            maxLatencyLabel.setText("MaxLatency  0");
+            avgLatencyLabel = new Label();
+            avgLatencyLabel.setText("AvgLatency  0");
+            throughputLabel = new Label();
+            throughputLabel.setText("Throughput  0");
 
-        Label arrivalLabel = new Label();
-        arrivalLabel.setText("Arrival  " + arrival.getValue());
-        arrival.addAdjustmentListener(new AdjustmentListener() {
-            @Override
-            public void adjustmentValueChanged(AdjustmentEvent e) {
-                arrivalLabel.setText("Arrival  " + arrival.getValue());
-            }
-        });
+            setLayout(new GridLayout(3, 3));
+            add(countLabel);
+            add(timeLabel);
+            add(distanceLabel);
+            add(minLatencyLabel);
+            add(maxLatencyLabel);
+            add(avgLatencyLabel);
+            add(throughputLabel);
+        }
 
-        playback = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 600);
-        playback.setUnitIncrement(25);
-        playback.setValue(200);
+        public void show(Road freeway) {
+            countLabel.setText("Count  " + freeway.count);
+            timeLabel.setText("Time  " + freeway.ticks);
+            distanceLabel.setText("Distance  " + freeway.distance);
+            minLatencyLabel.setText("MinLatency  " + freeway.minLatency);
+            maxLatencyLabel.setText("MaxLatency  " + freeway.maxLatency);
+            avgLatencyLabel.setText("AvgLatency  " + freeway.avgLatency);
+            throughputLabel.setText("Throughput  " + freeway.throughput);
+        }
 
-        Label playbackLabel = new Label();
-        playbackLabel.setText("Playback  " + playback.getValue());
-        playback.addAdjustmentListener(new AdjustmentListener() {
-            @Override
-            public void adjustmentValueChanged(AdjustmentEvent e) {
-                playbackLabel.setText("Playback  " + playback.getValue());
-            }
-        });
-
-        Panel parameterPanel = new Panel();
-        parameterPanel.setLayout(new GridLayout(2, 4));
-        parameterPanel.add(slowdownLabel);
-        parameterPanel.add(slowdown);
-        parameterPanel.add(arrivalLabel);
-        parameterPanel.add(arrival);
-        parameterPanel.add(playbackLabel);
-        parameterPanel.add(playback);
-        parameterPanel.add(new Label(""));
-        parameterPanel.add(new Label(""));
-
-        return parameterPanel;
+        private Label countLabel;
+        private Label timeLabel;
+        private Label distanceLabel;
+        private Label minLatencyLabel;
+        private Label maxLatencyLabel;
+        private Label avgLatencyLabel;
+        private Label throughputLabel;
     }
 
-    private Panel createMetricPanel() {
-        countLabel = new Label();
-        countLabel.setText("Count  0");
-        timeLabel = new Label();
-        timeLabel.setText("Time  0");
-        distanceLabel = new Label();
-        distanceLabel.setText("Distance  0");
-        minLatencyLabel = new Label();
-        minLatencyLabel.setText("MinLatency  0");
-        maxLatencyLabel = new Label();
-        maxLatencyLabel.setText("MaxLatency  0");
-        avgLatencyLabel = new Label();
-        avgLatencyLabel.setText("AvgLatency  0");
-        throughputLabel = new Label();
-        throughputLabel.setText("Throughput  0");
-
-        Panel metricPanel = new Panel();
-        metricPanel.setLayout(new GridLayout(3, 3));
-        metricPanel.add(countLabel);
-        metricPanel.add(timeLabel);
-        metricPanel.add(distanceLabel);
-        metricPanel.add(minLatencyLabel);
-        metricPanel.add(maxLatencyLabel);
-        metricPanel.add(avgLatencyLabel);
-        metricPanel.add(throughputLabel);
-
-        return metricPanel;
-    }
 
     public void guiInit() {
         Frame frame = new Frame();
@@ -108,10 +135,10 @@ public class RoadSim {
             }
         });
 
-        Panel parameterPanel = createParameterPanel();
-        Panel metricPanel = createMetricPanel();
+        parameterPanel = new ParameterPanel();
+        metricPanel = new MetricPanel();
 
-        canvas = new Canvas();
+        Canvas canvas = new Canvas();
         canvas.setBackground(Color.black);
 
         frame.setLayout(new BorderLayout());
@@ -123,14 +150,19 @@ public class RoadSim {
         buffer = canvas.getBufferStrategy();
     }
 
+
     public void run() {
+        final int DOTSIZE = 4;
+        final int XDOTDIST = 5;
+        final int ROW = 44;
+
         Road freeway = new Road();
 
         for ( ;; ) {
-            double probabilitySlowdown = 0.01 * slowdown.getValue();
-            double probabilityArrival = 0.01 * arrival.getValue();
+            double probabilitySlowdown = 0.01 * parameterPanel.slowdown();
+            double probabilityArrival = 0.01 * parameterPanel.arrival();
 
-            Move move = freeway.update(probabilitySlowdown, probabilityArrival);
+            Move move = freeway.step(probabilitySlowdown, probabilityArrival);
             if (move == null) {
                 continue;
             }
@@ -145,19 +177,14 @@ public class RoadSim {
             g.dispose();
             buffer.show();
 
-            countLabel.setText("Count  " + freeway.count);
-            timeLabel.setText("Time  " + freeway.ticks);
-            distanceLabel.setText("Distance  " + freeway.distance);
-            minLatencyLabel.setText("MinLatency  " + freeway.minLatency);
-            maxLatencyLabel.setText("MaxLatency  " + freeway.maxLatency);
-            avgLatencyLabel.setText("AvgLatency  " + freeway.avgLatency);
-            throughputLabel.setText("Throughput  " + freeway.throughput);
+            metricPanel.show(freeway);
 
             try {
-                Thread.sleep( playback.getValue() );
+                Thread.sleep( parameterPanel.playback() );
             } catch (InterruptedException e) {}
         }
      }
+
 
     public static void main(String[] args) {
         RoadSim sim = new RoadSim();
@@ -165,23 +192,10 @@ public class RoadSim {
         sim.run();
    }
 
-    private Scrollbar slowdown;
-    private Scrollbar arrival;
-    private Scrollbar playback;
 
-    private Canvas canvas;
+    private ParameterPanel parameterPanel;
+    private MetricPanel metricPanel;
     private BufferStrategy buffer;
-    private static final int DOTSIZE = 4;
-    private static final int XDOTDIST = 5;
-    private static final int ROW = 44;
-
-    private Label countLabel;
-    private Label timeLabel;
-    private Label distanceLabel;
-    private Label minLatencyLabel;
-    private Label maxLatencyLabel;
-    private Label avgLatencyLabel;
-    private Label throughputLabel;
 }
 
 
@@ -306,7 +320,7 @@ class Road {
         timers = new LinkedList<>();
     }
 
-    public Move update(double probabilitySlowdown, double probabilityArrival) {
+    public Move step(double probabilitySlowdown, double probabilityArrival) {
         Move move = null;
 
         // skip location with no vehicle
