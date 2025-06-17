@@ -12,7 +12,6 @@ public class RoadSim {
 
     public RoadSim() {}
 
-
     private class ParameterPanel extends Panel {
 
         public ParameterPanel() {
@@ -75,7 +74,6 @@ public class RoadSim {
         private Scrollbar playback;
     }
 
-
     private class MetricPanel extends Panel {
 
         public MetricPanel() {
@@ -122,7 +120,6 @@ public class RoadSim {
         private Label throughputLabel;
     }
 
-
     public void guiInit() {
         Frame frame = new Frame();
         frame.setSize(800, 200);
@@ -150,30 +147,48 @@ public class RoadSim {
         buffer = canvas.getBufferStrategy();
     }
 
+    private void paint(Graphics g, Skip move) {}
+
+    private void paint(Graphics g, Move move) {
+        g.setColor( Color.black );
+        g.fillRect( move.fromA * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
+        g.setColor( move.item.showColor() );
+        g.fillRect( move.toB * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
+    }
+
+    private void paint(Graphics g, Erase move) {
+        g.setColor( Color.black );
+        g.fillRect( move.fromA * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
+    }
+
+    private void paint(Graphics g, BringIn move) {
+        g.setColor( move.item.showColor() );
+        g.fillRect( move.toB * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
+    }
 
     public void run() {
-        final int DOTSIZE = 4;
-        final int XDOTDIST = 5;
-        final int ROW = 44;
-
         Road freeway = new Road();
 
         for ( ;; ) {
             double probabilitySlowdown = 0.01 * parameterPanel.slowdown();
             double probabilityArrival = 0.01 * parameterPanel.arrival();
 
-            Move move = freeway.step(probabilitySlowdown, probabilityArrival);
-            if (move == null) {
-                continue;
+            Graphics g = buffer.getDrawGraphics();
+
+            Object move = freeway.step(probabilitySlowdown, probabilityArrival);
+            if ( move instanceof Skip ) {
+                paint( g, (Skip) move );
+            }
+            else if ( move instanceof Move ) {
+                paint( g, (Move) move );
+            }
+            else if ( move instanceof Erase ) {
+                paint( g, (Erase) move );
+            }
+            else if ( move instanceof BringIn ) {
+                paint( g, (BringIn) move );
             }
 
-            Graphics g = buffer.getDrawGraphics();
-            g.setColor( Color.black );
-            g.fillRect( move.fromA * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
-            if ( move.item != null ) {
-                g.setColor( move.item.showColor() );
-                g.fillRect( move.toB * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
-            }
             g.dispose();
             buffer.show();
 
@@ -185,13 +200,15 @@ public class RoadSim {
         }
      }
 
-
     public static void main(String[] args) {
         RoadSim sim = new RoadSim();
         sim.guiInit();
         sim.run();
    }
 
+    private static final int DOTSIZE = 4;
+    private static final int XDOTDIST = 5;
+    private static final int ROW = 44;
 
     private ParameterPanel parameterPanel;
     private MetricPanel metricPanel;
@@ -200,11 +217,15 @@ public class RoadSim {
 
 
 /*
- * skip move := null
+ * skip move := ()
  * move a piece := (n, m, piece)
- * erase a piece := (n, -1, piece)
- * bring in a piece := (0, 0, piece)
+ * erase a piece := (n, piece)
+ * bring in a piece := (m=0, piece)
  */
+class Skip {
+    public Skip() {}
+}
+
 class Move {
     public Move(int _from, int _to, Car _car) {
         fromA = _from;
@@ -213,6 +234,26 @@ class Move {
     }
 
     public int fromA;   // item was there
+    public int toB;     // and is here now
+    public Car item;
+}
+
+class Erase {
+    public Erase(int _from, Car _car) {
+        fromA = _from;
+        item = _car;
+    }
+
+    public int fromA;   // item was there
+    public Car item;
+}
+
+class BringIn {
+    public BringIn(Car _car) {
+        toB = 0;
+        item = _car;
+    }
+
     public int toB;     // and is here now
     public Car item;
 }
@@ -233,6 +274,14 @@ interface Vehicle {
 /*
  */
 class Car implements Vehicle {
+    /*
+     * provide a factory method
+     * restrict what can be constructed
+     * hide the details of construction
+     *
+     * all cars behave the same
+     * no need for sub-classing yet
+     */
     public static Car create(String category) {
         switch(category) {
         case "regular":
@@ -254,12 +303,12 @@ class Car implements Vehicle {
     }
 
     public String called;
-    private Color color;       // used to mark begin and end of measurements for example
-    private Color slowerColor;       // color signals car is slowing down
-    private Color fasterColor;       // color signals car is accelerating
-    public int speed;         // actual speed
-    private int speedChange;   // change in speed from previous actual speed
-    public int latency;       // traveltime
+    private Color color;        // color signals car moves at constant speed
+    private Color slowerColor;  // color signals car is slowing down
+    private Color fasterColor;  // color signals car is accelerating
+    public int speed;           // actual speed
+    private int speedChange;    // change in speed from speed at (ticks - 1)
+    public int latency;         // traveltime in ticks
 
     @Override
     public int slowdown(int decr) {
@@ -320,8 +369,9 @@ class Road {
         timers = new LinkedList<>();
     }
 
-    public Move step(double probabilitySlowdown, double probabilityArrival) {
-        Move move = null;
+
+    public Object step(double probabilitySlowdown, double probabilityArrival) {
+        Object move = new Skip();
 
         // skip location with no vehicle
         while (loc < LENGTH && road[loc] == null)
@@ -371,11 +421,11 @@ class Road {
                     sumLatency += driveCar.latency;
                     avgLatency = sumLatency / receivedCount;
                     if ( driveCar.called == "pacer" ) {
-                        throughput = BATCH * 100 / (ticks - timers.poll() + 1);
+                        throughput = CARBATCH * 100 / (ticks - timers.poll() + 1);
                     }
                     driveCar = null;
 
-                    move = new Move( loc, -1, null );
+                    move = new Erase( loc, null );
                 }
                 road[loc] = null;
             }
@@ -397,7 +447,7 @@ class Road {
                 }
 
                 Car newCar;
-                if (count % BATCH == 0) {
+                if (count % CARBATCH == 0) {
                     timerFlag = true;
                     newCar = Car.create("pacer");
                 }
@@ -407,18 +457,18 @@ class Road {
                 newCar.accelerate( (int) (5.99 * Math.random()) );
                 road[loc] = newCar;
 
-                move = new Move( loc, loc, road[loc] );
+                move = new BringIn( road[loc] );
             }
         }
 
         return move;
     }
 
-    private final int LENGTH = 160;
-    private final int MAXSPEED = 5;
-    private final int BATCH = 10;
-    private Car[] road;
-    private int loc;
+    private final int LENGTH = 160;   // the road is divided into a number of sectors
+    private final int MAXSPEED = 5;   // car can at most travel this amount of sectors within 1 tick
+    private final int CARBATCH = 10;
+    private Car[] road;               // road is a list of sectors, there can only be 1 car in a sector
+    private int loc;                  //
 
     public int count;              // cars left from departure
     public int receivedCount;      // cars arrived at destination
