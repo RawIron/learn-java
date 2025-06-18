@@ -270,6 +270,10 @@ interface Vehicle {
     Color showColor();
 }
 
+enum Category {
+    REGULAR,
+    PACER
+}
 
 /*
  */
@@ -282,17 +286,17 @@ class Car implements Vehicle {
      * all cars behave the same
      * no need for sub-classing yet
      */
-    public static Car create(String category) {
+    public static Car create(Category category) {
         switch(category) {
-        case "regular":
+        case REGULAR:
             return new Car(category, Color.blue, Color.yellow, Color.green);
-        case "pacer" :
+        case PACER:
             return new Car(category, Color.red, Color.orange, Color.pink);
         }
         return null;
     }
 
-    private Car(String _called, Color _color, Color _slowerColor, Color _fasterColor) {
+    private Car(Category _called, Color _color, Color _slowerColor, Color _fasterColor) {
         called = _called;
         color = _color;
         slowerColor = _slowerColor;
@@ -302,7 +306,7 @@ class Car implements Vehicle {
         latency = 0;
     }
 
-    public String called;
+    public Category called;
     private Color color;        // color signals car moves at constant speed
     private Color slowerColor;  // color signals car is slowing down
     private Color fasterColor;  // color signals car is accelerating
@@ -420,7 +424,7 @@ class Road {
                     }
                     sumLatency += driveCar.latency;
                     avgLatency = sumLatency / receivedCount;
-                    if ( driveCar.called == "pacer" ) {
+                    if ( driveCar.called == Category.PACER ) {
                         throughput = CARBATCH * 100 / (ticks - timers.poll() + 1);
                     }
                     driveCar = null;
@@ -449,10 +453,10 @@ class Road {
                 Car newCar;
                 if (count % CARBATCH == 0) {
                     timerFlag = true;
-                    newCar = Car.create("pacer");
+                    newCar = Car.create(Category.PACER);
                 }
                 else {
-                    newCar = Car.create("regular");
+                    newCar = Car.create(Category.REGULAR);
                 }
                 newCar.accelerate( (int) (5.99 * Math.random()) );
                 road[loc] = newCar;
