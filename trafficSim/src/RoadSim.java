@@ -8,11 +8,11 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.AdjustmentEvent;
 
 
-public class RoadSim {
+class RoadSimGui implements Animator {
 
-    public RoadSim() {}
+    public RoadSimGui() {}
 
-    private class ParameterPanel extends Panel {
+    private class ParameterPanel extends Panel implements Parameters {
 
         public ParameterPanel() {
             slowdown = new Scrollbar(Scrollbar.HORIZONTAL, 0, 0, 0, 100);
@@ -74,7 +74,7 @@ public class RoadSim {
         private Scrollbar playback;
     }
 
-    private class MetricPanel extends Panel {
+    private class MetricPanel extends Panel implements Metrics {
 
         public MetricPanel() {
             countLabel = new Label("Count  0");
@@ -120,7 +120,7 @@ public class RoadSim {
         private Label throughputLabel;
     }
 
-    public void guiInit() {
+    public void init() {
         Frame frame = new Frame();
         frame.setSize(800, 200);
         frame.setVisible(true);
@@ -132,87 +132,130 @@ public class RoadSim {
             }
         });
 
-        parameterPanel = new ParameterPanel();
-        metricPanel = new MetricPanel();
+        parameters = new ParameterPanel();
+        metrics = new MetricPanel();
 
         Canvas canvas = new Canvas();
         canvas.setBackground(Color.black);
 
         frame.setLayout(new BorderLayout());
-        frame.add("North", parameterPanel);
+        frame.add("North", parameters);
         frame.add("Center", canvas);
-        frame.add("South", metricPanel);
+        frame.add("South", metrics);
 
         canvas.createBufferStrategy(2);
         buffer = canvas.getBufferStrategy();
     }
 
-    private void paint(Graphics g, Skip move) {}
+    public void paint(Skip move) {}
 
-    private void paint(Graphics g, Move move) {
+    public void paint(Move move) {
+        Graphics g = buffer.getDrawGraphics();
+
         g.setColor( Color.black );
         g.fillRect( move.fromA * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
         g.setColor( move.item.showColor() );
         g.fillRect( move.toB * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
+
+        g.dispose();
+        buffer.show();
     }
 
-    private void paint(Graphics g, Erase move) {
+    public void paint(Erase move) {
+        Graphics g = buffer.getDrawGraphics();
+
         g.setColor( Color.black );
         g.fillRect( move.fromA * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
+
+        g.dispose();
+        buffer.show();
     }
 
-    private void paint(Graphics g, BringIn move) {
+    public void paint(BringIn move) {
+        Graphics g = buffer.getDrawGraphics();
+
         g.setColor( move.item.showColor() );
         g.fillRect( move.toB * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
+
+        g.dispose();
+        buffer.show();
     }
-
-    public void run() {
-        Road freeway = new Road();
-
-        for ( ;; ) {
-            double probabilitySlowdown = 0.01 * parameterPanel.slowdown();
-            double probabilityArrival = 0.01 * parameterPanel.arrival();
-
-            Graphics g = buffer.getDrawGraphics();
-
-            Object move = freeway.step(probabilitySlowdown, probabilityArrival);
-            if ( move instanceof Skip ) {
-                paint( g, (Skip) move );
-            }
-            else if ( move instanceof Move ) {
-                paint( g, (Move) move );
-            }
-            else if ( move instanceof Erase ) {
-                paint( g, (Erase) move );
-            }
-            else if ( move instanceof BringIn ) {
-                paint( g, (BringIn) move );
-            }
-
-            g.dispose();
-            buffer.show();
-
-            metricPanel.show(freeway);
-
-            try {
-                Thread.sleep( parameterPanel.playback() );
-            } catch (InterruptedException e) {}
-        }
-     }
-
-    public static void main(String[] args) {
-        RoadSim sim = new RoadSim();
-        sim.guiInit();
-        sim.run();
-   }
 
     private static final int DOTSIZE = 4;
     private static final int XDOTDIST = 5;
     private static final int ROW = 44;
 
-    private ParameterPanel parameterPanel;
-    private MetricPanel metricPanel;
+    public ParameterPanel parameters;
+    public MetricPanel metrics;
     private BufferStrategy buffer;
+}
+
+
+interface Metrics {
+    public void show(Road r);
+}
+
+interface Parameters {
+    public int slowdown();
+    public int arrival();
+    public int playback();
+}
+
+interface Animator {
+    public void paint(Skip m);
+    public void paint(Move m);
+    public void paint(Erase m);
+    public void paint(BringIn m);
+}
+
+
+public class RoadSim {
+
+    public RoadSim(Road _freeway, Parameters _parameters, Metrics _metrics, Animator _ui) {
+        freeway = _freeway;
+        parameters = _parameters;
+        metrics = _metrics;
+        ui = _ui;
+    }
+
+    public void run() {
+        for ( ;; ) {
+            double probabilitySlowdown = 0.01 * parameters.slowdown();
+            double probabilityArrival = 0.01 * parameters.arrival();
+
+            Object move = freeway.step(probabilitySlowdown, probabilityArrival);
+            if ( move instanceof Skip ) {
+                ui.paint( (Skip) move );
+            }
+            else if ( move instanceof Move ) {
+                ui.paint( (Move) move );
+            }
+            else if ( move instanceof Erase ) {
+                ui.paint( (Erase) move );
+            }
+            else if ( move instanceof BringIn ) {
+                ui.paint( (BringIn) move );
+            }
+
+            metrics.show(freeway);
+
+            try {
+                Thread.sleep( parameters.playback() );
+            } catch (InterruptedException e) {}
+        }
+     }
+
+    public static void main(String[] args) {
+        RoadSimGui gui = new RoadSimGui();
+        gui.init();
+        RoadSim sim = new RoadSim(new Road(), gui.parameters, gui.metrics, gui);
+        sim.run();
+   }
+
+   private Parameters parameters;
+   private Metrics metrics;
+   private Animator ui;
+   private Road freeway;
 }
 
 
