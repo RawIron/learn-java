@@ -78,10 +78,8 @@ class RoadSimGui implements Animator {
 
         public MetricPanel() {
             countLabel = new Label("Count  0");
-            timeLabel = new Label();
-            timeLabel.setText("Time  0");
-            distanceLabel = new Label();
-            distanceLabel.setText("Distance  0");
+            circulatingLabel = new Label("Circulating  0");
+            distanceLabel = new Label("Distance  0");
             minLatencyLabel = new Label();
             minLatencyLabel.setText("MinLatency  0");
             maxLatencyLabel = new Label();
@@ -90,34 +88,38 @@ class RoadSimGui implements Animator {
             avgLatencyLabel.setText("AvgLatency  0");
             throughputLabel = new Label();
             throughputLabel.setText("Throughput  0");
+            timeLabel = new Label("Time  0");
 
             setLayout(new GridLayout(3, 3));
-            add(countLabel);
             add(timeLabel);
-            add(distanceLabel);
+            add(countLabel);
+            add(circulatingLabel);
             add(minLatencyLabel);
             add(maxLatencyLabel);
             add(avgLatencyLabel);
             add(throughputLabel);
+            add(distanceLabel);
         }
 
         public void show(Road freeway) {
             countLabel.setText("Count  " + freeway.count);
-            timeLabel.setText("Time  " + freeway.ticks);
+            circulatingLabel.setText("Circulating  " + freeway.circulating);
             distanceLabel.setText("Distance  " + freeway.distance);
             minLatencyLabel.setText("MinLatency  " + freeway.minLatency);
             maxLatencyLabel.setText("MaxLatency  " + freeway.maxLatency);
             avgLatencyLabel.setText("AvgLatency  " + freeway.avgLatency);
             throughputLabel.setText("Throughput  " + freeway.throughput);
+            timeLabel.setText("Time  " + freeway.ticks);
         }
 
         private Label countLabel;
-        private Label timeLabel;
+        private Label circulatingLabel;
         private Label distanceLabel;
         private Label minLatencyLabel;
         private Label maxLatencyLabel;
         private Label avgLatencyLabel;
         private Label throughputLabel;
+        private Label timeLabel;
     }
 
     public void init() {
@@ -508,6 +510,8 @@ class Road {
             }
         }
 
+        circulating = count - receivedCount;
+
         return move;
     }
 
@@ -519,6 +523,7 @@ class Road {
 
     public int count;              // cars left from departure
     public int receivedCount;      // cars arrived at destination
+    public int circulating;
     public int ticks;              // 1 tick := all cars on the road have been moved
     public int distance;
     public int minLatency;
