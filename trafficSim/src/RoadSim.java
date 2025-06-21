@@ -74,7 +74,7 @@ class RoadSimGui implements Animator {
         private Scrollbar playback;
     }
 
-    private class MetricPanel extends Panel implements Metrics {
+    private class MetricPanel extends Panel implements Monitor {
 
         public MetricPanel() {
             countLabel = new Label("Count  0");
@@ -101,15 +101,15 @@ class RoadSimGui implements Animator {
             add(distanceLabel);
         }
 
-        public void show(Road freeway) {
-            countLabel.setText("Count  " + freeway.count);
-            circulatingLabel.setText("Circulating  " + freeway.circulating);
-            distanceLabel.setText("Distance  " + freeway.distance);
-            minLatencyLabel.setText("MinLatency  " + freeway.minLatency);
-            maxLatencyLabel.setText("MaxLatency  " + freeway.maxLatency);
-            avgLatencyLabel.setText("AvgLatency  " + freeway.avgLatency);
-            throughputLabel.setText("Throughput  " + freeway.throughput);
-            timeLabel.setText("Time  " + freeway.ticks);
+        public void show(Metrics metrics) {
+            countLabel.setText("Count  " + metrics.count);
+            circulatingLabel.setText("Circulating  " + metrics.circulating);
+            distanceLabel.setText("Distance  " + metrics.distance);
+            minLatencyLabel.setText("MinLatency  " + metrics.minLatency);
+            maxLatencyLabel.setText("MaxLatency  " + metrics.maxLatency);
+            avgLatencyLabel.setText("AvgLatency  " + metrics.avgLatency);
+            throughputLabel.setText("Throughput  " + metrics.throughput);
+            timeLabel.setText("Time  " + metrics.ticks);
         }
 
         private Label countLabel;
@@ -135,7 +135,7 @@ class RoadSimGui implements Animator {
         });
 
         parameters = new ParameterPanel();
-        metrics = new MetricPanel();
+        monitor = new MetricPanel();
 
         Canvas canvas = new Canvas();
         canvas.setBackground(Color.black);
@@ -143,7 +143,7 @@ class RoadSimGui implements Animator {
         frame.setLayout(new BorderLayout());
         frame.add("North", parameters);
         frame.add("Center", canvas);
-        frame.add("South", metrics);
+        frame.add("South", monitor);
 
         canvas.createBufferStrategy(2);
         buffer = canvas.getBufferStrategy();
@@ -188,13 +188,13 @@ class RoadSimGui implements Animator {
     private static final int ROW = 44;
 
     public ParameterPanel parameters;
-    public MetricPanel metrics;
+    public MetricPanel monitor;
     private BufferStrategy buffer;
 }
 
 
-interface Metrics {
-    public void show(Road r);
+interface Monitor {
+    public void show(Metrics m);
 }
 
 interface Parameters {
@@ -213,10 +213,11 @@ interface Animator {
 
 public class RoadSim {
 
-    public RoadSim(Road _freeway, Parameters _parameters, Metrics _metrics, Animator _ui) {
+    public RoadSim(Road _freeway, Metrics _metrics, Parameters _parameters, Monitor _monitor, Animator _ui) {
         freeway = _freeway;
-        parameters = _parameters;
         metrics = _metrics;
+        parameters = _parameters;
+        monitor = _monitor;
         ui = _ui;
     }
 
@@ -239,7 +240,7 @@ public class RoadSim {
                 ui.paint( (BringIn) move );
             }
 
-            metrics.show(freeway);
+            monitor.show(metrics);
 
             try {
                 Thread.sleep( parameters.playback() );
@@ -250,14 +251,18 @@ public class RoadSim {
     public static void main(String[] args) {
         RoadSimGui gui = new RoadSimGui();
         gui.init();
-        RoadSim sim = new RoadSim(new Road(), gui.parameters, gui.metrics, gui);
+
+        Metrics metrics = new Metrics();
+        Road road = new Road(metrics);
+        RoadSim sim = new RoadSim(road, metrics, gui.parameters, gui.monitor, gui);
         sim.run();
    }
 
    private Parameters parameters;
-   private Metrics metrics;
+   private Monitor monitor;
    private Animator ui;
    private Road freeway;
+   private Metrics metrics;
 }
 
 
@@ -301,6 +306,156 @@ class BringIn {
 
     public int toB;     // and is here now
     public Car item;
+}
+
+
+class Metrics {
+    public Metrics() {}
+
+    public int count;              // cars left from departure
+    public int receivedCount;      // cars arrived at destination
+    public int circulating;
+    public int ticks;              // 1 tick := all cars on the road have been moved
+    public int distance;
+    public int minLatency;
+    public int maxLatency;
+    public int avgLatency;
+    public int sumLatency;
+    public int throughput;         // cars traveled the whole distance per 100 ticks
+}
+
+
+/*
+ */
+class Road {
+
+    public Road(Metrics _metrics) {
+        road = new Car[LENGTH];
+        for (int i = 0; i < LENGTH; i++) { road[i] = null; }
+
+        loc = 0;
+
+        metrics = _metrics;
+        metrics.count = 0;
+        metrics.receivedCount = 0;
+        metrics.ticks = 0;
+        metrics.distance = LENGTH;
+        metrics.maxLatency = 0;
+        metrics.minLatency = LENGTH;
+        metrics.avgLatency = 0;
+        metrics.sumLatency = 0;
+        metrics.throughput = 0;
+
+        timerFlag = true;
+        timers = new LinkedList<>();
+    }
+
+
+    public Object step(double probabilitySlowdown, double probabilityArrival) {
+        Object move = new Skip();
+
+        // skip location with no vehicle
+        while (loc < LENGTH && road[loc] == null)
+            loc++;
+
+        if (loc < LENGTH) {
+            Car driveCar = road[loc];
+            driveCar.elapsed(1);
+
+            // randomly adjust speed of vehicle at current location
+            if (Math.random() <= probabilitySlowdown && driveCar.speed > 0) {
+                driveCar.slowdown(1);
+            }
+            else if (driveCar.speed < MAXSPEED) {
+                driveCar.accelerate(1);
+            }
+
+            // reduce speed of vehicle at current location
+            // depending on speed of vehicle in front
+            int inext = loc + 1;
+            while (inext < LENGTH && road[inext] == null)
+                inext++;
+            // in case there is another vehicle ..
+            if (inext < LENGTH) {
+                // reduce speed to avoid a crash
+                if (driveCar.speed >= inext - loc) {
+                    driveCar.slowdown( driveCar.speed - (inext - loc - 1) );
+                }
+            }
+
+            // move vehicle to new location
+            if (driveCar.speed > 0) {
+                if (loc + driveCar.speed < LENGTH) {
+                    int nloc = loc + driveCar.speed;
+                    road[nloc] = driveCar;
+
+                    move = new Move( loc, nloc, road[nloc] );
+                }
+                else {
+                    metrics.receivedCount++;
+                    if (driveCar.latency > metrics.maxLatency) {
+                        metrics.maxLatency = driveCar.latency;
+                    }
+                    if (driveCar.latency < metrics.minLatency) {
+                        metrics.minLatency = driveCar.latency;
+                    }
+                    metrics.sumLatency += driveCar.latency;
+                    metrics.avgLatency = metrics.sumLatency / metrics.receivedCount;
+                    if ( driveCar.called == Category.PACER ) {
+                        metrics.throughput = CARBATCH * 100 / (metrics.ticks - timers.poll() + 1);
+                    }
+                    driveCar = null;
+
+                    move = new Erase( loc, null );
+                }
+                road[loc] = null;
+            }
+
+            // continue with next vehicle
+            loc = inext;
+        }
+        else {
+            ++metrics.ticks;
+            loc = 0;
+            // randomly decide whether a new vehicle arrives
+            // new vehicle has random speed
+            if (Math.random() <= probabilityArrival && road[0] == null) {
+                ++metrics.count;
+
+                if (timerFlag) {
+                    timers.add(metrics.ticks);
+                    timerFlag = false;
+                }
+
+                Car newCar;
+                if (metrics.count % CARBATCH == 0) {
+                    timerFlag = true;
+                    newCar = Car.create(Category.PACER);
+                }
+                else {
+                    newCar = Car.create(Category.REGULAR);
+                }
+                newCar.accelerate( (int) (5.99 * Math.random()) );
+                road[loc] = newCar;
+
+                move = new BringIn( road[loc] );
+            }
+        }
+
+        metrics.circulating = metrics.count - metrics.receivedCount;
+
+        return move;
+    }
+
+    private final int LENGTH = 160;   // the road is divided into a number of sectors
+    private final int MAXSPEED = 5;   // car can at most travel this amount of sectors within 1 tick
+    private final int CARBATCH = 10;
+    private Car[] road;               // road is a list of sectors, there can only be 1 car in a sector
+    private int loc;                  //
+
+    private Metrics metrics;
+    private boolean timerFlag;     // true := start a timer
+    private Queue<Integer> timers; // push the tick a timer was started into a queue
 }
 
 
@@ -392,146 +547,5 @@ class Car implements Vehicle {
             return color;
         }
     }
-}
-
-
-/*
- */
-class Road {
-
-    public Road() {
-        road = new Car[LENGTH];
-        for (int i = 0; i < LENGTH; i++) { road[i] = null; }
-
-        loc = 0;
-
-        count = 0;
-        receivedCount = 0;
-        ticks = 0;
-        distance = LENGTH;
-        maxLatency = 0;
-        minLatency = LENGTH;
-        avgLatency = 0;
-        sumLatency = 0;
-        throughput = 0;
-        timerFlag = true;
-        timers = new LinkedList<>();
-    }
-
-
-    public Object step(double probabilitySlowdown, double probabilityArrival) {
-        Object move = new Skip();
-
-        // skip location with no vehicle
-        while (loc < LENGTH && road[loc] == null)
-            loc++;
-
-        if (loc < LENGTH) {
-            Car driveCar = road[loc];
-            driveCar.elapsed(1);
-
-            // randomly adjust speed of vehicle at current location
-            if (Math.random() <= probabilitySlowdown && driveCar.speed > 0) {
-                driveCar.slowdown(1);
-            }
-            else if (driveCar.speed < MAXSPEED) {
-                driveCar.accelerate(1);
-            }
-
-            // reduce speed of vehicle at current location
-            // depending on speed of vehicle in front
-            int inext = loc + 1;
-            while (inext < LENGTH && road[inext] == null)
-                inext++;
-            // in case there is another vehicle ..
-            if (inext < LENGTH) {
-                // reduce speed to avoid a crash
-                if (driveCar.speed >= inext - loc) {
-                    driveCar.slowdown( driveCar.speed - (inext - loc - 1) );
-                }
-            }
-
-            // move vehicle to new location
-            if (driveCar.speed > 0) {
-                if (loc + driveCar.speed < LENGTH) {
-                    int nloc = loc + driveCar.speed;
-                    road[nloc] = driveCar;
-
-                    move = new Move( loc, nloc, road[nloc] );
-                }
-                else {
-                    receivedCount++;
-                    if (driveCar.latency > maxLatency) {
-                        maxLatency = driveCar.latency;
-                    }
-                    if (driveCar.latency < minLatency) {
-                        minLatency = driveCar.latency;
-                    }
-                    sumLatency += driveCar.latency;
-                    avgLatency = sumLatency / receivedCount;
-                    if ( driveCar.called == Category.PACER ) {
-                        throughput = CARBATCH * 100 / (ticks - timers.poll() + 1);
-                    }
-                    driveCar = null;
-
-                    move = new Erase( loc, null );
-                }
-                road[loc] = null;
-            }
-
-            // continue with next vehicle
-            loc = inext;
-        }
-        else {
-            ++ticks;
-            loc = 0;
-            // randomly decide whether a new vehicle arrives
-            // new vehicle has random speed
-            if (Math.random() <= probabilityArrival && road[0] == null) {
-                ++count;
-
-                if (timerFlag) {
-                    timers.add(ticks);
-                    timerFlag = false;
-                }
-
-                Car newCar;
-                if (count % CARBATCH == 0) {
-                    timerFlag = true;
-                    newCar = Car.create(Category.PACER);
-                }
-                else {
-                    newCar = Car.create(Category.REGULAR);
-                }
-                newCar.accelerate( (int) (5.99 * Math.random()) );
-                road[loc] = newCar;
-
-                move = new BringIn( road[loc] );
-            }
-        }
-
-        circulating = count - receivedCount;
-
-        return move;
-    }
-
-    private final int LENGTH = 160;   // the road is divided into a number of sectors
-    private final int MAXSPEED = 5;   // car can at most travel this amount of sectors within 1 tick
-    private final int CARBATCH = 10;
-    private Car[] road;               // road is a list of sectors, there can only be 1 car in a sector
-    private int loc;                  //
-
-    public int count;              // cars left from departure
-    public int receivedCount;      // cars arrived at destination
-    public int circulating;
-    public int ticks;              // 1 tick := all cars on the road have been moved
-    public int distance;
-    public int minLatency;
-    public int maxLatency;
-    public int avgLatency;
-    private int sumLatency;
-    public int throughput;         // cars traveled the whole distance per 100 ticks
-    private boolean timerFlag;     // true := start a timer
-    private Queue<Integer> timers; // push timer into a queue
 }
 
