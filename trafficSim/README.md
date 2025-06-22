@@ -8,38 +8,45 @@ design diagram
 @startuml roadsim
 !option handwritten true
 
-class RoadSimGui
-class ParameterPanel
-class MetricPanel
+component UI {
+    class RoadSimGui
+    class ParameterPanel
+    class MetricPanel
 
-RoadSimGui *-- ParameterPanel
-RoadSimGui *-- MetricPanel
+    RoadSimGui *-- ParameterPanel
+    RoadSimGui *-- MetricPanel
+}
 
-interface Monitor
-interface Parameters
-interface Animator
+component Simulator {
+    interface Monitor
+    interface Parameters
+    interface Animator
+
+    class RoadSim
+
+    class Metrics
+    Monitor <-- Metrics
+}
 
 MetricPanel ..|> Monitor
 ParameterPanel ..|> Parameters
 RoadSimGui ..|> Animator
-
 RoadSim <-- Monitor
 RoadSim <-- Parameters
 RoadSim <-- Animator
-class RoadSim
-RoadSim --> Road
 
-class Metrics
-Monitor <-- Metrics
-Road --> Metrics
+component Simulating {
+    class Road
+    Road <-- Vehicle
 
-class Road
-Road --> Vehicle
+    interface Vehicle
+    class Car
 
-interface Vehicle
-class Car
+    Car ..|> Vehicle
+}
 
-Car ..|> Vehicle
+RoadSim <-- Road
+Road <-- Metrics
 
 @enduml
 ```
