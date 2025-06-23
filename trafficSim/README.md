@@ -1,6 +1,6 @@
 generate the UML diagrams with
 ```
-plantuml -tsvg README.md
+plantuml -tpng README.md
 ```
 
 design diagram
@@ -43,15 +43,27 @@ component Simulating {
     class Car
 
     Car ..|> Vehicle
+
+    class Object
+    class Skip
+    class Move
+    class Erase
+    class BringIn
+
+    Skip --|> Object
+    Move --|> Object
+    Erase --|> Object
+    BringIn --|> Object
 }
 
 RoadSim <-- Road
+Animator <-- Object
 Road <-- Metrics
+Road <-- Object
 
 @enduml
 ```
-
-![](roadsim.svg)
+![](roadsim.png)
 
 that is a lot of structure for a small problem.
-well, it is a java language exercise.
+it is a java language exercise :)
