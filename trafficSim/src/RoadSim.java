@@ -1,3 +1,5 @@
+package trafficSim.src;
+
 import java.lang.Math;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -553,8 +555,6 @@ class Car implements Vehicle {
      */
     @Override
     public int brake(int pos) {
-        if ( pos - brakeAt == 0 ) { return speed; }
-
         final int delay = 5;   // ticks it takes to go from topspeed to 0
         final int range = 100;  // discrete points to approximate continuous movement
         int deltaSpeed = (int) Math.floor( ((double) pos / (delay * range)) * topSpeed );
@@ -572,11 +572,9 @@ class Car implements Vehicle {
      */
     @Override
     public int accelerator(int pos) {
-        if ( pos - acceleratorAt == 0 ) { return speed; }
-
         final int delay = 10;   // ticks it takes to go from 0 to topspeed
         final int range = 100;  // discrete points to approximate continuous movement
-        if ( pos - acceleratorAt > 0 ) {
+        if ( pos - acceleratorAt >= 0 ) {
             int deltaSpeed = (int) Math.ceil( ((double) pos / (delay * range)) * topSpeed );
             speed = Math.min(speed + deltaSpeed, topSpeed);
             speedChange += deltaSpeed;
