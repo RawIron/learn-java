@@ -1,3 +1,4 @@
+import java.lang.Math;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.awt.*;
@@ -8,6 +9,10 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.AdjustmentEvent;
 
 
+/**
+ * animate the movement on the road
+ * show simulation metrics
+ */
 class RoadSimGui implements Animator {
 
     public RoadSimGui() {}
@@ -156,7 +161,7 @@ class RoadSimGui implements Animator {
 
         g.setColor( Color.black );
         g.fillRect( move.fromA * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
-        g.setColor( move.item.showColor() );
+        g.setColor( move.item.color() );
         g.fillRect( move.toB * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
 
         g.dispose();
@@ -176,7 +181,7 @@ class RoadSimGui implements Animator {
     public void paint(BringIn move) {
         Graphics g = buffer.getDrawGraphics();
 
-        g.setColor( move.item.showColor() );
+        g.setColor( move.item.color() );
         g.fillRect( move.toB * XDOTDIST, ROW, DOTSIZE, DOTSIZE );
 
         g.dispose();
@@ -211,14 +216,16 @@ interface Animator {
 }
 
 
+/**
+ */
 public class RoadSim {
 
-    public RoadSim(Road _freeway, Metrics _metrics, Parameters _parameters, Monitor _monitor, Animator _ui) {
-        freeway = _freeway;
-        metrics = _metrics;
-        parameters = _parameters;
-        monitor = _monitor;
-        ui = _ui;
+    public RoadSim(Road freeway, Metrics metrics, Parameters parameters, Monitor monitor, Animator ui) {
+        this.freeway = freeway;
+        this.metrics = metrics;
+        this.parameters = parameters;
+        this.monitor = monitor;
+        this.ui = ui;
     }
 
     public void run() {
@@ -266,7 +273,7 @@ public class RoadSim {
 }
 
 
-/*
+/**
  * skip move := ()
  * move a piece := (n, m, piece)
  * erase a piece := (n, piece)
@@ -277,10 +284,10 @@ class Skip {
 }
 
 class Move {
-    public Move(int _from, int _to, Car _car) {
-        fromA = _from;
-        toB = _to;
-        item = _car;
+    public Move(int from, int to, Car car) {
+        fromA = from;
+        toB = to;
+        item = car;
     }
 
     public int fromA;   // item was there
@@ -289,9 +296,9 @@ class Move {
 }
 
 class Erase {
-    public Erase(int _from, Car _car) {
-        fromA = _from;
-        item = _car;
+    public Erase(int from, Car car) {
+        fromA = from;
+        item = car;
     }
 
     public int fromA;   // item was there
@@ -299,22 +306,36 @@ class Erase {
 }
 
 class BringIn {
-    public BringIn(Car _car) {
+    public BringIn(Car car) {
         toB = 0;
-        item = _car;
+        item = car;
     }
 
-    public int toB;     // and is here now
+    public int toB;     // item is here now
     public Car item;
 }
 
 
+/**
+ */
 class Metrics {
-    public Metrics() {}
+    public Metrics() {
+        count = 0;
+        receivedCount = 0;
+        crashes = 0;
+        ticks = 0;
+        distance = 160;
+        maxLatency = 0;
+        minLatency = 999;
+        avgLatency = 0;
+        sumLatency = 0;
+        throughput = 0;
+    }
 
     public int count;              // cars left from departure
     public int receivedCount;      // cars arrived at destination
     public int circulating;
+    public int crashes;            // cars crashed
     public int ticks;              // 1 tick := all cars on the road have been moved
     public int distance;
     public int minLatency;
@@ -325,32 +346,26 @@ class Metrics {
 }
 
 
-/*
+/**
+ * simulate how the vehicles move on the road
+ *    _drives_ the vehicles
+ *    keeps track where the vehicles are located on the road
  */
 class Road {
 
-    public Road(Metrics _metrics) {
+    public Road(Metrics metrics) {
         road = new Car[LENGTH];
         for (int i = 0; i < LENGTH; i++) { road[i] = null; }
-
         loc = 0;
 
-        metrics = _metrics;
-        metrics.count = 0;
-        metrics.receivedCount = 0;
-        metrics.ticks = 0;
-        metrics.distance = LENGTH;
-        metrics.maxLatency = 0;
-        metrics.minLatency = LENGTH;
-        metrics.avgLatency = 0;
-        metrics.sumLatency = 0;
-        metrics.throughput = 0;
-
+        this.metrics = metrics;
         timerFlag = true;
         timers = new LinkedList<>();
     }
 
-
+    /**
+     * move one car to a new position
+     */
     public Object step(double probabilitySlowdown, double probabilityArrival) {
         Object move = new Skip();
 
@@ -361,13 +376,15 @@ class Road {
         if (loc < LENGTH) {
             Car driveCar = road[loc];
             driveCar.elapsed(1);
+            int gasPedal = 0;
+            int brakePedal = 0;
 
             // randomly adjust speed of vehicle at current location
-            if (Math.random() <= probabilitySlowdown && driveCar.speed > 0) {
-                driveCar.slowdown(1);
+            if (Math.random() <= probabilitySlowdown && driveCar.speed() > 0) {
+                gasPedal = 0;
             }
-            else if (driveCar.speed < MAXSPEED) {
-                driveCar.accelerate(1);
+            else {
+                gasPedal = 100;
             }
 
             // reduce speed of vehicle at current location
@@ -378,30 +395,37 @@ class Road {
             // in case there is another vehicle ..
             if (inext < LENGTH) {
                 // reduce speed to avoid a crash
-                if (driveCar.speed >= inext - loc) {
-                    driveCar.slowdown( driveCar.speed - (inext - loc - 1) );
+                if (driveCar.speed() >= inext - loc) {
+                    gasPedal = 10;
                 }
+            }
+            driveCar.accelerator(gasPedal);
+            driveCar.brake(brakePedal);
+
+            if (driveCar.speed() >= inext - loc) {
+                // could not avoid a crash
+                ++metrics.crashes;
             }
 
             // move vehicle to new location
-            if (driveCar.speed > 0) {
-                if (loc + driveCar.speed < LENGTH) {
-                    int nloc = loc + driveCar.speed;
+            if (driveCar.speed() > 0) {
+                if (loc + driveCar.speed() < LENGTH) {
+                    int nloc = loc + driveCar.speed();
                     road[nloc] = driveCar;
 
                     move = new Move( loc, nloc, road[nloc] );
                 }
                 else {
                     metrics.receivedCount++;
-                    if (driveCar.latency > metrics.maxLatency) {
-                        metrics.maxLatency = driveCar.latency;
+                    if (driveCar.traveltime() > metrics.maxLatency) {
+                        metrics.maxLatency = driveCar.traveltime();
                     }
-                    if (driveCar.latency < metrics.minLatency) {
-                        metrics.minLatency = driveCar.latency;
+                    if (driveCar.traveltime() < metrics.minLatency) {
+                        metrics.minLatency = driveCar.traveltime();
                     }
-                    metrics.sumLatency += driveCar.latency;
+                    metrics.sumLatency += driveCar.traveltime();
                     metrics.avgLatency = metrics.sumLatency / metrics.receivedCount;
-                    if ( driveCar.called == Category.PACER ) {
+                    if ( driveCar.called() == Category.PACER ) {
                         metrics.throughput = CARBATCH * 100 / (metrics.ticks - timers.poll() + 1);
                     }
                     driveCar = null;
@@ -435,7 +459,7 @@ class Road {
                 else {
                     newCar = Car.create(Category.REGULAR);
                 }
-                newCar.accelerate( (int) (5.99 * Math.random()) );
+                newCar.accelerator( (int) (99.99 * Math.random()) );
                 road[loc] = newCar;
 
                 move = new BringIn( road[loc] );
@@ -448,7 +472,6 @@ class Road {
     }
 
     private final int LENGTH = 160;   // the road is divided into a number of sectors
-    private final int MAXSPEED = 5;   // car can at most travel this amount of sectors within 1 tick
     private final int CARBATCH = 10;
     private Car[] road;               // road is a list of sectors, there can only be 1 car in a sector
     private int loc;                  //
@@ -459,32 +482,45 @@ class Road {
 }
 
 
-/*
+/**
  * no need for an interface at this point
- * just added to practice the syntax
+ * just practice the usage of an interface in the design
  */
 interface Vehicle {
-    int slowdown(int decrement);
-    int accelerate(int increment);
-    int elapsed(int increment);
-    Color showColor();
+    int brake(int position);          // new position of brake pedal
+    int accelerator(int position);    // new position of accelerator pedal
+    int elapsed(int increment);       // time elapsed in ticks
+    // methods to read state
+    Color color();
+    Category called();
+    int speed();
+    int traveltime();
 }
 
+/**
+ * using enum instead of strings
+ *  client code can be checked by compiler
+ *  clients need to recompile when categories change
+ */
 enum Category {
     REGULAR,
     PACER
 }
 
-/*
+/**
+ * very simplistic car model
+ *  press down or release accelerator pedal
+ *  press down or release brake pedal
+ * linear response of speed to pedal movements
+ *
+ * all cars behave the same
+ *  no need for sub-classing yet
  */
 class Car implements Vehicle {
-    /*
+    /**
      * provide a factory method
-     * restrict what can be constructed
-     * hide the details of construction
-     *
-     * all cars behave the same
-     * no need for sub-classing yet
+     *   restrict what can be constructed
+     *   hide the details of construction
      */
     public static Car create(Category category) {
         switch(category) {
@@ -496,47 +532,84 @@ class Car implements Vehicle {
         return null;
     }
 
-    private Car(Category _called, Color _color, Color _slowerColor, Color _fasterColor) {
-        called = _called;
-        color = _color;
-        slowerColor = _slowerColor;
-        fasterColor = _fasterColor;
+    private Car(Category called, Color color, Color slowerColor, Color fasterColor) {
+        this.called = called;
+        this.color = color;
+        this.slowerColor = slowerColor;
+        this.fasterColor = fasterColor;
+        acceleratorAt = 0;
+        brakeAt = 0;
+        topSpeed = 10;
         speed = 0;
         speedChange = 0;
-        latency = 0;
+        traveltime = 0;
     }
 
-    public Category called;
-    private Color color;        // color signals car moves at constant speed
-    private Color slowerColor;  // color signals car is slowing down
-    private Color fasterColor;  // color signals car is accelerating
-    public int speed;           // actual speed
-    private int speedChange;    // change in speed from speed at (ticks - 1)
-    public int latency;         // traveltime in ticks
-
+    /**
+     * @param pos position of the break pedal, between 0 and 100
+     *            0 = released all the way
+     *            100 = pressed down all the way
+     * @return current speed
+     */
     @Override
-    public int slowdown(int decr) {
-        speed -= decr;
-        speedChange -= decr;
+    public int brake(int pos) {
+        if ( pos - brakeAt == 0 ) { return speed; }
+
+        final int delay = 5;   // ticks it takes to go from topspeed to 0
+        final int range = 100;  // discrete points to approximate continuous movement
+        int deltaSpeed = (int) Math.floor( ((double) pos / (delay * range)) * topSpeed );
+        speed = Math.max(0, speed - deltaSpeed);
+        speedChange -= deltaSpeed;
+        brakeAt = pos;
         return speed;
     }
 
+    /**
+     * @param pos position of the accelerator pedal, between 0 and 100
+     *            0 = released all the way
+     *            100 = pressed down all the way
+     * @return current speed
+     */
     @Override
-    public int accelerate(int incr) {
-        speed += incr;
-        speedChange += incr;
+    public int accelerator(int pos) {
+        if ( pos - acceleratorAt == 0 ) { return speed; }
+
+        final int delay = 10;   // ticks it takes to go from 0 to topspeed
+        final int range = 100;  // discrete points to approximate continuous movement
+        if ( pos - acceleratorAt > 0 ) {
+            int deltaSpeed = (int) Math.ceil( ((double) pos / (delay * range)) * topSpeed );
+            speed = Math.min(speed + deltaSpeed, topSpeed);
+            speedChange += deltaSpeed;
+        }
+        else {
+            int deltaSpeed = (int) Math.floor( ((double) pos / (delay * range)) * topSpeed );
+            speed = Math.max(0, speed - deltaSpeed);
+            speedChange -= deltaSpeed;
+        }
+        acceleratorAt = pos;
         return speed;
     }
 
+    /**
+     *  simulator has the central time
+     *
+     *  @param incr ticks passed since last call from simulator
+     *  @return total time traveled in ticks
+     */
     @Override
     public int elapsed(int incr) {
         speedChange = 0;
-        latency += incr;
-        return latency;
+        traveltime += incr;
+        return traveltime;
     }
 
+    /**
+     * client depends on an interface
+     *  expose state to the client via methods
+     *  interface cannot expose class variables
+     */
     @Override
-    public Color showColor() {
+    public Color color() {
         if (speedChange < 0) {
             return slowerColor;
         }
@@ -547,5 +620,32 @@ class Car implements Vehicle {
             return color;
         }
     }
+
+    @Override
+    public int speed() {
+        return speed;
+    }
+
+    @Override
+    public int traveltime() {
+        return traveltime;
+    }
+
+    @Override
+    public Category called() {
+        return called;
+    }
+
+    private Category called;
+    private Color color;        // color signals car moves at constant speed
+    private Color slowerColor;  // color signals car is slowing down
+    private Color fasterColor;  // color signals car is accelerating
+    private final int topSpeed; // in this simplistic model of a vehicle it is constant
+                                // car can at most travel this amount of road sectors within 1 tick
+    private int acceleratorAt;  // current position of accelerator pedal
+    private int brakeAt;        // current position of brake pedal
+    private int speed;          // current speed
+    private int speedChange;    // change in speed since speed at (ticks - 1)
+    private int traveltime;     // traveltime in ticks
 }
 

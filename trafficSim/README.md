@@ -66,4 +66,3 @@ Road <-- Object
 ![](roadsim.png)
 
 that is a lot of structure for a small problem.
-it is a java language exercise :)
