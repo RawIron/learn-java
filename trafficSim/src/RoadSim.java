@@ -1,6 +1,8 @@
 package trafficSim.src;
 
 import java.lang.Math;
+import java.io.*;
+import java.util.logging.*;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.awt.*;
@@ -363,6 +365,9 @@ class Road {
         this.metrics = metrics;
         timerFlag = true;
         timers = new LinkedList<>();
+
+        logger = Logger.getLogger(this.getClass().getName());
+        logger.setLevel(Level.INFO);
     }
 
     /**
@@ -393,28 +398,34 @@ class Road {
             // depending on speed of vehicle in front
             int inext = loc + 1;
             while (inext < LENGTH && road[inext] == null)
-                inext++;
+                ++inext;
             // in case there is another vehicle ..
             if (inext < LENGTH) {
                 // reduce speed to avoid a crash
                 if (driveCar.speed() >= inext - loc) {
-                    gasPedal = 10;
+                    gasPedal = 0;
+                    brakePedal = 100;
                 }
             }
             driveCar.accelerator(gasPedal);
             driveCar.brake(brakePedal);
 
-            if (driveCar.speed() >= inext - loc) {
-                // could not avoid a crash
-                ++metrics.crashes;
-            }
-
             // move vehicle to new location
             if (driveCar.speed() > 0) {
-                if (loc + driveCar.speed() < LENGTH) {
+                if (inext < LENGTH && driveCar.speed() >= inext - loc) {
+                    // could not avoid a crash
+                    ++metrics.crashes;
+                    // fender bender, keep going
+                    road[inext-1] = driveCar;
+
+                    logger.fine(String.format("crash %d %d %d\n", driveCar.id(), driveCar.speed(), inext-1));
+                    move = new Move( loc, inext-1, road[inext-1] );
+                }
+                else if (loc + driveCar.speed() < LENGTH) {
                     int nloc = loc + driveCar.speed();
                     road[nloc] = driveCar;
 
+                    logger.fine(String.format("move %d %d %d\n", driveCar.id(), driveCar.speed(), nloc));
                     move = new Move( loc, nloc, road[nloc] );
                 }
                 else {
@@ -430,8 +441,9 @@ class Road {
                     if ( driveCar.called() == Category.PACER ) {
                         metrics.throughput = CARBATCH * 100 / (metrics.ticks - timers.poll() + 1);
                     }
-                    driveCar = null;
 
+                    logger.fine(String.format("remove %d %d %d\n", driveCar.id(), driveCar.speed(), loc));
+                    driveCar = null;
                     move = new Erase( loc, null );
                 }
                 road[loc] = null;
@@ -473,6 +485,8 @@ class Road {
         return move;
     }
 
+    private Logger logger;
+
     private final int LENGTH = 160;   // the road is divided into a number of sectors
     private final int CARBATCH = 10;
     private Car[] road;               // road is a list of sectors, there can only be 1 car in a sector
@@ -493,6 +507,7 @@ interface Vehicle {
     int accelerator(int position);    // new position of accelerator pedal
     int elapsed(int increment);       // time elapsed in ticks
     // methods to read state
+    long id();
     Color color();
     Category called();
     int speed();
@@ -519,6 +534,8 @@ enum Category {
  *  no need for sub-classing yet
  */
 class Car implements Vehicle {
+    private static long sequence = 0;
+
     /**
      * provide a factory method
      *   restrict what can be constructed
@@ -539,6 +556,7 @@ class Car implements Vehicle {
         this.color = color;
         this.slowerColor = slowerColor;
         this.fasterColor = fasterColor;
+        id = ++sequence;
         acceleratorAt = 0;
         brakeAt = 0;
         topSpeed = 10;
@@ -630,16 +648,22 @@ class Car implements Vehicle {
     }
 
     @Override
+    public long id() {
+        return id;
+    }
+
+    @Override
     public Category called() {
         return called;
     }
 
-    private Category called;
-    private Color color;        // color signals car moves at constant speed
-    private Color slowerColor;  // color signals car is slowing down
-    private Color fasterColor;  // color signals car is accelerating
-    private final int topSpeed; // in this simplistic model of a vehicle it is constant
-                                // car can at most travel this amount of road sectors within 1 tick
+    private final long id;
+    private final Category called;
+    private final Color color;        // color signals car moves at constant speed
+    private final Color slowerColor;  // color signals car is slowing down
+    private final Color fasterColor;  // color signals car is accelerating
+    private final int topSpeed;       // in this simplistic model of a vehicle it is constant
+                                      // car can at most travel this amount of road sectors within 1 tick
     private int acceleratorAt;  // current position of accelerator pedal
     private int brakeAt;        // current position of brake pedal
     private int speed;          // current speed
