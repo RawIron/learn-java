@@ -1,3 +1,5 @@
+### Design
+
 generate the UML diagrams with
 ```
 plantuml -tpng README.md
@@ -66,3 +68,17 @@ Road <-- Object
 ![](roadsim.png)
 
 that is a lot of structure for a small problem.
+
+
+### Run
+
+run it on Sway
+```
+make RoadSim
+make runway
+```
+
+run tests
+```
+make tests
+```
