@@ -202,16 +202,33 @@ class RoadSimGui implements Animator {
 }
 
 
+/**
+ * observability
+ *
+ * method is called in the main simulation loop
+ */
 interface Monitor {
     public void show(Metrics m);
 }
 
+/**
+ * parameters which can be adjusted
+ * while simulation is running
+ *
+ * methods are called in the main simulation loop
+ */
 interface Parameters {
     public int slowdown();
     public int arrival();
     public int playback();
 }
 
+/**
+ * one method per simulation event
+ * different designs
+ *   paint(Object o)
+ *   paint(<E>)
+ */
 interface Animator {
     public void paint(Skip m);
     public void paint(Move m);
@@ -221,6 +238,8 @@ interface Animator {
 
 
 /**
+ * construct Simulator object
+ * run the main simulation loop
  */
 public class RoadSim {
 
@@ -278,6 +297,8 @@ public class RoadSim {
 
 
 /**
+ * Simulation Events
+ *
  * skip move := ()
  * move a piece := (n, m, piece)
  * erase a piece := (n, piece)
@@ -321,14 +342,15 @@ class BringIn {
 
 
 /**
+ * capture telemetry data of the simulation
  */
 class Metrics {
     public Metrics() {
+        distance = 160;
+        ticks = 0;
         count = 0;
         receivedCount = 0;
         crashes = 0;
-        ticks = 0;
-        distance = 160;
         maxLatency = 0;
         minLatency = 999;
         avgLatency = 0;
@@ -336,12 +358,12 @@ class Metrics {
         throughput = 0;
     }
 
+    public final int distance;     // length of the road in sectors
+    public int ticks;              // 1 tick := all cars on the road have been moved
     public int count;              // cars left from departure
     public int receivedCount;      // cars arrived at destination
-    public int circulating;
+    public int circulating;        // cars on the road
     public int crashes;            // cars crashed
-    public int ticks;              // 1 tick := all cars on the road have been moved
-    public int distance;
     public int minLatency;
     public int maxLatency;
     public int avgLatency;
@@ -505,7 +527,7 @@ class Road {
 interface Vehicle {
     int brake(int position);          // new position of brake pedal
     int accelerator(int position);    // new position of accelerator pedal
-    int elapsed(int increment);       // time elapsed in ticks
+    int elapsed(int ticks);       // time elapsed in ticks
     // methods to read state
     long id();
     Color color();
